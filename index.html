@@ -1,2062 +1,1155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIAM STREAM - CRM de Gestión de Cuentas de Streaming</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & Cinzel/Montserrat para la identidad LIAM STREAM -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F4F6FA;
-            color: #1E293B;
-        }
-        .font-brand {
-            font-family: 'Montserrat', sans-serif;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 7px;
-            width: 7px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #F1F5F9;
-            border-radius: 9999px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 9999px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-        .nav-pill-active {
-            background-color: #EDE9FE;
-            color: #6333F6;
-            font-weight: 600;
-        }
-        .filter-pill-active {
-            background-color: #2B2A4C;
-            color: #FFFFFF;
-            border-color: #2B2A4C;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LIAM STREAM — Gestión de Suscripciones (Cloud)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f4f6fb; color: #1e293b; }
+    .custom-scrollbar::-webkit-scrollbar { height: 7px; width: 7px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .modal-backdrop { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); }
+    .pill-shadow { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+  </style>
 </head>
-<body class="antialiased selection:bg-violet-200 selection:text-violet-900">
+<body class="min-h-screen flex overflow-x-hidden">
 
-    <!-- Contenedor de Notificaciones Toast -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Overlay móvil para Sidebar -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden lg:hidden transition-opacity"></div>
-
-    <div class="min-h-screen flex bg-[#F4F6FA]">
-
-        <!-- ================= SIDEBAR IZQUIERDO ================= -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-[235px] bg-white border-r border-slate-100 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0 shrink-0">
-            <div>
-                <!-- Logo LIAM STREAM (Idéntico a la imagen proporcionada) -->
-                <div class="px-4 pt-5 pb-4 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5 cursor-pointer select-none group" onclick="switchView('clientes')">
-                        <!-- Emblema negro con el isotipo Play/L dorado y metálico -->
-                        <div class="w-11 h-11 rounded-2xl bg-[#0D0D0F] flex items-center justify-center shadow-md shadow-amber-900/15 border border-amber-500/30 shrink-0 group-hover:scale-105 transition-transform">
-                            <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <linearGradient id="goldGrad" x1="12" y1="8" x2="46" y2="56" gradientUnits="userSpaceOnUse">
-                                        <stop offset="0%" stop-color="#FDE68A"/>
-                                        <stop offset="35%" stop-color="#D99B26"/>
-                                        <stop offset="70%" stop-color="#B47816"/>
-                                        <stop offset="100%" stop-color="#F5D061"/>
-                                    </linearGradient>
-                                    <linearGradient id="darkTriGrad" x1="22" y1="12" x2="54" y2="44" gradientUnits="userSpaceOnUse">
-                                        <stop offset="0%" stop-color="#3F3F46"/>
-                                        <stop offset="100%" stop-color="#141416"/>
-                                    </linearGradient>
-                                </defs>
-                                <!-- Triángulo oscuro derecho -->
-                                <path d="M23 11.5L51.5 28.5C54.2 30.1 54.2 33.9 51.5 35.5L43.5 40.3H23V11.5Z" fill="url(#darkTriGrad)" stroke="#52525B" stroke-width="0.8"/>
-                                <!-- Trazo en L con borde redondeado dorado -->
-                                <path d="M14 14C14 10.6863 16.6863 8 20 8H21V42.5H42.5L22.2 54.6C18.2 57 14 54.1 14 49.4V14Z" fill="url(#goldGrad)"/>
-                            </svg>
-                        </div>
-
-                        <!-- Tipografía LIAM STREAM - ENTRETENIMIENTO SIN LÍMITES -->
-                        <div class="flex flex-col leading-none">
-                            <div class="font-brand font-extrabold text-[19px] tracking-[0.14em] text-slate-900 flex items-center">
-                                <span>LI</span>
-                                <span class="relative inline-flex items-center justify-center">
-                                    A
-                                    <!-- Triángulo dorado interior de la A -->
-                                    <svg class="w-[6px] h-[6px] text-[#D99B26] absolute bottom-[2.5px]" viewBox="0 0 10 10" fill="currentColor">
-                                        <polygon points="2,1 9,5 2,9"/>
-                                    </svg>
-                                </span>
-                                <span>M</span>
-                            </div>
-                            <div class="flex items-center gap-1 mt-0.5">
-                                <span class="h-[1px] w-2.5 bg-[#D99B26]"></span>
-                                <span class="font-brand font-bold text-[8px] tracking-[0.26em] text-[#B47816]">STREAM</span>
-                                <span class="h-[1px] w-2.5 bg-[#D99B26]"></span>
-                            </div>
-                            <span class="text-[5.5px] font-semibold tracking-[0.11em] text-slate-400 uppercase mt-0.5">ENTRETENIMIENTO SIN LÍMITES</span>
-                        </div>
-                    </div>
-
-                    <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Menú de Navegación -->
-                <nav class="px-3 mt-2 space-y-1.5">
-                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="home" class="w-[18px] h-[18px]"></i>
-                        <span>Dashboard</span>
-                    </button>
-
-                    <button onclick="switchView('clientes')" id="nav-clientes" class="nav-item nav-pill-active w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] transition-colors">
-                        <i data-lucide="users" class="w-[18px] h-[18px]"></i>
-                        <span>Clientes</span>
-                    </button>
-
-                    <button onclick="switchView('mensajes-ia')" id="nav-mensajes-ia" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="message-square-text" class="w-[18px] h-[18px]"></i>
-                        <span>Mensajes IA</span>
-                    </button>
-
-                    <button onclick="switchView('mensaje-masivo')" id="nav-mensaje-masivo" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="megaphone" class="w-[18px] h-[18px]"></i>
-                        <span>Mensaje Masivo</span>
-                    </button>
-
-                    <button onclick="switchView('config')" id="nav-config" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="settings" class="w-[18px] h-[18px]"></i>
-                        <span>Config</span>
-                    </button>
-
-                    <button onclick="switchView('noticias')" id="nav-noticias" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="file-text" class="w-[18px] h-[18px]"></i>
-                        <span>Noticias</span>
-                    </button>
-
-                    <button onclick="switchView('perfil')" id="nav-perfil" class="nav-item w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-slate-50 transition-colors">
-                        <i data-lucide="user" class="w-[18px] h-[18px]"></i>
-                        <span>Perfil</span>
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Botón Salir -->
-            <div class="p-4 border-t border-slate-50">
-                <button onclick="showToast('Sesión cerrada de forma segura en LIAM STREAM', 'info')" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-full text-[13.5px] text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors">
-                    <i data-lucide="log-out" class="w-[18px] h-[18px]"></i>
-                    <span>Salir</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- ================= CONTENIDO PRINCIPAL ================= -->
-        <div class="flex-1 flex flex-col min-w-0">
-
-            <!-- HEADER SUPERIOR -->
-            <header class="bg-white border-b border-slate-100 px-4 lg:px-7 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
-                <!-- Izquierda: Hamburguesa + Título + Píldoras de Filtro -->
-                <div class="flex items-center gap-3 flex-wrap">
-                    <button onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" title="Alternar menú">
-                        <i data-lucide="menu" class="w-5 h-5"></i>
-                    </button>
-
-                    <h1 id="page-header-title" class="text-[17px] font-bold text-slate-800 mr-2">Clientes</h1>
-
-                    <!-- Píldoras de filtro rápido (Visibles en vista Clientes) -->
-                    <div id="header-filter-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                        <button onclick="setStatusFilter('todo')" data-filter="todo" class="filter-pill filter-pill-active px-3.5 py-1.5 rounded-full text-xs font-medium border border-slate-200 transition-all cursor-pointer whitespace-nowrap">
-                            Todo
-                        </button>
-                        <button onclick="setStatusFilter('proveedor')" data-filter="proveedor" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap">
-                            Proveedor
-                        </button>
-                        <button onclick="setStatusFilter('vence-hoy')" data-filter="vence-hoy" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap">
-                            Vence hoy
-                        </button>
-                        <button onclick="setStatusFilter('proximos-3')" data-filter="proximos-3" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap">
-                            Proximos 3 dias
-                        </button>
-                        <button onclick="setStatusFilter('vencidos')" data-filter="vencidos" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap">
-                            Vencidos
-                        </button>
-                        <button onclick="setStatusFilter('activos')" data-filter="activos" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer whitespace-nowrap">
-                            Activos
-                        </button>
-
-                        <!-- Botón IA Recordatorios -->
-                        <button onclick="openAIReminderModal()" class="ml-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#F59E0B] to-[#EA580C] hover:from-[#D97706] hover:to-[#C2410C] shadow-xs transition-all cursor-pointer whitespace-nowrap">
-                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                            <span>IA Recordatorios</span>
-                        </button>
-
-                        <!-- Botón Agregar Cliente -->
-                        <button onclick="openClientModal()" class="ml-1 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold text-white bg-[#6333F6] hover:bg-[#5224E0] shadow-xs transition-all cursor-pointer whitespace-nowrap">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                            <span>Agregar Cliente</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Derecha: Iconos de notificación y Perfil Usuario -->
-                <div class="flex items-center gap-2.5 ml-auto">
-                    <button onclick="openAIReminderModal()" class="relative p-2 rounded-full bg-slate-50 hover:bg-slate-100 text-[#6333F6] transition-colors" title="Recordatorios pendientes">
-                        <i data-lucide="message-square" class="w-4 h-4 fill-[#6333F6]/15"></i>
-                        <span id="badge-ia-count" class="absolute -top-0.5 -right-0.5 bg-[#6333F6] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">16</span>
-                    </button>
-
-                    <button onclick="showToast('No tienes nuevas alertas del sistema', 'info')" class="relative p-2 rounded-full bg-slate-50 hover:bg-slate-100 text-[#6333F6] transition-colors" title="Notificaciones">
-                        <i data-lucide="bell" class="w-4 h-4 fill-[#6333F6]/15"></i>
-                        <span class="absolute -top-0.5 -right-0.5 bg-[#6333F6] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
-                    </button>
-
-                    <button onclick="toggleThemeNotice()" class="p-2 rounded-full bg-slate-50 hover:bg-slate-100 text-[#6333F6] transition-colors" title="Tema claro activo">
-                        <i data-lucide="sun" class="w-4 h-4"></i>
-                    </button>
-
-                    <!-- Avatar y Nombre de Usuario -->
-                    <div onclick="switchView('perfil')" class="flex items-center gap-2.5 pl-1 cursor-pointer group">
-                        <div class="w-9 h-9 rounded-full bg-[#6333F6] text-white font-bold text-xs flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                            JV
-                        </div>
-                        <div class="hidden sm:flex flex-col text-left leading-tight">
-                            <span class="text-xs font-bold text-slate-800">Jhilmer Valencia</span>
-                            <span class="text-[10.5px] text-slate-400">Usuario 2026</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- ================= VISTA 1: CLIENTES (PRINCIPAL) ================= -->
-            <main id="view-clientes" class="view-section p-4 lg:p-6 flex-1">
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-xs p-5">
-
-                    <!-- Título del Card -->
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                        <h2 id="clients-counter-title" class="text-[15px] font-bold text-slate-800">
-                            Clientes vendidos (16/16)
-                        </h2>
-                        <div id="bulk-selection-bar" class="hidden items-center gap-2 bg-violet-50 border border-violet-200 px-3 py-1 rounded-full text-xs text-violet-800">
-                            <span id="selected-count-label" class="font-semibold">0 seleccionados</span>
-                            <button onclick="deleteSelectedClients()" class="text-rose-600 hover:underline font-semibold ml-2 cursor-pointer">Eliminar seleccionados</button>
-                        </div>
-                    </div>
-
-                    <!-- Barra de Búsqueda y Botones de Acción -->
-                    <div class="flex flex-wrap items-center gap-2.5 mb-5">
-                        <!-- Input Buscador -->
-                        <div class="relative flex-1 min-w-[240px]">
-                            <input
-                                type="text"
-                                id="search-input"
-                                oninput="handleFilters()"
-                                placeholder="Buscar por nombre, contacto, plataforma, PIN o correo..."
-                                class="w-full pl-3.5 pr-9 py-2 text-xs text-slate-700 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#6333F6] focus:ring-2 focus:ring-violet-100 transition-all"
-                            >
-                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        </div>
-
-                        <!-- Botón Eliminar todo -->
-                        <button onclick="confirmDeleteAll()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#FFF1F2] text-[#E11D48] hover:bg-[#FFE4E6] transition-colors cursor-pointer">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            <span>Eliminar todo</span>
-                        </button>
-
-                        <!-- Botón Descarga General -->
-                        <button onclick="exportGeneralSummary()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#ECFDF5] text-[#059669] hover:bg-[#D1FAE5] transition-colors cursor-pointer">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                            <span>Descarga General</span>
-                        </button>
-
-                        <!-- Botón Descargar Excel -->
-                        <button onclick="exportToExcelCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#FEF9C3] text-[#B45309] hover:bg-[#FEF08A] transition-colors cursor-pointer">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
-                            <span>Descargar Excel</span>
-                        </button>
-
-                        <!-- Botón Importar -->
-                        <label class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] transition-colors cursor-pointer">
-                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                            <span>Importar</span>
-                            <input type="file" id="import-csv-input" accept=".csv,.json" onchange="handleImportFile(event)" class="hidden">
-                        </label>
-
-                        <!-- Select Todas las plataformas -->
-                        <select id="platform-filter" onchange="handleFilters()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-700 bg-white border border-slate-200 focus:outline-none focus:border-[#6333F6] cursor-pointer">
-                            <option value="all">Todas las plataformas</option>
-                            <option value="SPOTIFY">SPOTIFY</option>
-                            <option value="netflix">netflix</option>
-                            <option value="Crunchyroll">Crunchyroll</option>
-                            <option value="Disney+">Disney+</option>
-                            <option value="HBO Max">HBO Max</option>
-                            <option value="Prime Video">Prime Video</option>
-                        </select>
-
-                        <!-- Select Todos los vencimientos -->
-                        <select id="expiry-dropdown-filter" onchange="handleDropdownExpiryFilter()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-700 bg-white border border-slate-200 focus:outline-none focus:border-[#6333F6] cursor-pointer">
-                            <option value="todo">Todos los vencimientos</option>
-                            <option value="vencidos">Vencidos</option>
-                            <option value="vence-hoy">Vence hoy</option>
-                            <option value="proximos-3">Próximos 3 días</option>
-                            <option value="activos">Activos (+4 días)</option>
-                        </select>
-                    </div>
-
-                    <!-- Tabla Responsiva -->
-                    <div class="overflow-x-auto custom-scrollbar border border-slate-100 rounded-xl">
-                        <table class="w-full text-left border-collapse min-w-[1440px]">
-                            <thead>
-                                <tr class="bg-[#F8FAFC] border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                    <th class="py-3 px-3 text-center w-10">
-                                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-[#6333F6] focus:ring-[#6333F6] cursor-pointer">
-                                    </th>
-                                    <th class="py-3 px-2.5 text-center">NOMBRE DE CLIENTE</th>
-                                    <th class="py-3 px-2.5 text-center">VENTA EN</th>
-                                    <th class="py-3 px-2.5 text-center">CONTACTO</th>
-                                    <th class="py-3 px-2.5 text-center">PLATAFORMA</th>
-                                    <th class="py-3 px-2.5 text-center">BANCO</th>
-                                    <th class="py-3 px-2.5 text-center">CORREO CUENTA</th>
-                                    <th class="py-3 px-2.5 text-center">CONTRASEÑA</th>
-                                    <th class="py-3 px-2.5 text-center">PIN DEL PERFIL</th>
-                                    <th class="py-3 px-2.5 text-center">PROVEEDOR</th>
-                                    <th class="py-3 px-2.5 text-center">CONTACTO PROV</th>
-                                    <th class="py-3 px-2.5 text-center">MONTO</th>
-                                    <th class="py-3 px-2.5 text-center">PERFIL/CUENTA</th>
-                                    <th class="py-3 px-2.5 text-center">PRECIO</th>
-                                    <th class="py-3 px-2.5 text-center">VENCE</th>
-                                    <th class="py-3 px-2.5 text-center">FECHA</th>
-                                    <th class="py-3 px-3 text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clients-table-body" class="divide-y divide-slate-100 text-xs">
-                                <!-- Filas renderizadas dinámicamente por JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pie de Tabla: Paginación -->
-                    <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-2">
-                        <p id="pagination-info" class="text-xs text-slate-500">
-                            Mostrando 1–14 de 16
-                        </p>
-                        <div id="pagination-controls" class="flex items-center gap-1.5">
-                            <!-- Botones de página generados dinámicamente -->
-                        </div>
-                    </div>
-
-                </div>
-            </main>
-
-            <!-- ================= VISTA 2: DASHBOARD ================= -->
-            <section id="view-dashboard" class="view-section hidden p-4 lg:p-6 space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">Clientes Activos</span>
-                            <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600"><i data-lucide="user-check" class="w-4 h-4"></i></span>
-                        </div>
-                        <p id="stat-active-clients" class="text-2xl font-bold text-slate-800 mt-2">14</p>
-                        <span class="text-[11px] text-emerald-600 font-medium">+12.5% este mes</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">Cuentas Vencidas</span>
-                            <span class="p-2 rounded-xl bg-rose-50 text-rose-600"><i data-lucide="alert-circle" class="w-4 h-4"></i></span>
-                        </div>
-                        <p id="stat-expired-clients" class="text-2xl font-bold text-slate-800 mt-2">2</p>
-                        <span class="text-[11px] text-rose-600 font-medium">Requieren renovación</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">Ingresos Totales (S/)</span>
-                            <span class="p-2 rounded-xl bg-violet-50 text-[#6333F6]"><i data-lucide="wallet" class="w-4 h-4"></i></span>
-                        </div>
-                        <p id="stat-total-revenue" class="text-2xl font-bold text-slate-800 mt-2">S/ 452</p>
-                        <span class="text-[11px] text-slate-400">Facturación acumulada</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">Plataforma Top</span>
-                            <span class="p-2 rounded-xl bg-amber-50 text-amber-600"><i data-lucide="tv" class="w-4 h-4"></i></span>
-                        </div>
-                        <p class="text-2xl font-bold text-slate-800 mt-2">Netflix</p>
-                        <span class="text-[11px] text-amber-600 font-medium">Mayor demanda en ventas</span>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs">
-                    <h3 class="text-sm font-bold text-slate-800 mb-3">Resumen Rápido por Plataforma</h3>
-                    <div id="platform-breakdown" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                </div>
-            </section>
-
-            <!-- ================= VISTA 3: MENSAJES IA ================= -->
-            <section id="view-mensajes-ia" class="view-section hidden p-4 lg:p-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs max-w-4xl">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="p-2.5 rounded-xl bg-amber-100 text-amber-600">
-                            <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800">Generador de Recordatorios IA - LIAM STREAM</h2>
-                            <p class="text-xs text-slate-500">Personaliza tus plantillas para abrir WhatsApp con el mensaje listo para enviar</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
-                            <span class="text-[11px] font-bold uppercase text-rose-600">Plantilla: Cuenta Vencida</span>
-                            <textarea id="tpl-expired" rows="4" class="w-full mt-2 p-3 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-[#6333F6]">Hola *{nombre}* 👋, te saludamos de *LIAM STREAM*. Tu suscripción de *{plataforma}* venció hace *{dias} días* ({fecha}). ¿Deseas renovarla hoy por S/ {precio} para mantener tu acceso activo?</textarea>
-                        </div>
-
-                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
-                            <span class="text-[11px] font-bold uppercase text-amber-600">Plantilla: Próximo a Vencer</span>
-                            <textarea id="tpl-upcoming" rows="4" class="w-full mt-2 p-3 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-[#6333F6]">¡Hola *{nombre}*! ✨ Te recordamos desde *LIAM STREAM* que tu cuenta de *{plataforma}* vence en *{dias} días* ({fecha}). Escríbenos para renovar tu plan de S/ {precio} sin cortes.</textarea>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex justify-end">
-                        <button onclick="showToast('Plantillas de IA guardadas correctamente', 'success')" class="px-5 py-2 rounded-full text-xs font-semibold bg-[#6333F6] text-white hover:bg-[#5224E0] transition-colors cursor-pointer">
-                            Guardar Plantillas
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ================= VISTA 4: MENSAJE MASIVO ================= -->
-            <section id="view-mensaje-masivo" class="view-section hidden p-4 lg:p-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs max-w-4xl space-y-5">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800">Envío por WhatsApp Directo</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Selecciona el grupo y abre el chat de cada cliente con su mensaje personalizado</p>
-                        </div>
-                        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                            Redirección Directa wa.me/51
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Segmento de Clientes</label>
-                            <select id="mass-segment" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs">
-                                <option value="vencidos">Solo clientes vencidos</option>
-                                <option value="proximos">Próximos a vencer (1 a 7 días)</option>
-                                <option value="todos">Todos los clientes con WhatsApp</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Mensaje Personalizado</label>
-                            <textarea id="mass-message-text" rows="2" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs" placeholder="Escribe el mensaje...">Hola {nombre}, en LIAM STREAM tenemos promociones especiales en combos de Streaming este mes 🎬✨.</textarea>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-500">Se abrirá WhatsApp Web / App con el primer destinatario listo.</span>
-                        <button onclick="triggerFirstSegmentWhatsApp()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer">
-                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                            <span>Abrir WhatsApp del Destinatario</span>
-                        </button>
-                    </div>
-
-                    <div class="border-t border-slate-100 pt-4">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Historial de Envíos Recientes</h3>
-                        <div id="api-logs-container" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                            <p class="text-xs text-slate-400 italic">Aún no se han abierto envíos en esta sesión.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ================= VISTA 5: CONFIG ================= -->
-            <section id="view-config" class="view-section hidden p-4 lg:p-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs max-w-3xl space-y-5">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Configuración de LIAM STREAM</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Personaliza los datos de tu tienda y prefijo telefónico para WhatsApp</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre de la Tienda</label>
-                            <input type="text" value="LIAM STREAM" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Moneda Predeterminada</label>
-                            <input type="text" value="S/ (Soles Peruanos)" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Código de País WhatsApp</label>
-                            <input type="text" value="+51 (Perú)" readonly class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Número de Soporte / Yape</label>
-                            <input type="text" id="cfg-sender-phone" value="+51 999 888 777" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs">
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                        <button onclick="resetDemoData()" class="px-4 py-2 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 cursor-pointer">
-                            Restaurar 16 clientes de ejemplo
-                        </button>
-                        <button onclick="saveWhatsAppConfig()" class="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#6333F6] text-white hover:bg-[#5224E0] cursor-pointer">
-                            Guardar Configuración
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ================= VISTA 6: NOTICIAS ================= -->
-            <section id="view-noticias" class="view-section hidden p-4 lg:p-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs max-w-3xl space-y-4">
-                    <h2 class="text-base font-bold text-slate-800">Novedades de LIAM STREAM</h2>
-                    <div class="p-4 rounded-xl bg-violet-50/70 border border-violet-100">
-                        <span class="text-[11px] font-bold text-[#6333F6]">ACTUALIZACIÓN 2026</span>
-                        <h3 class="text-sm font-bold text-slate-800 mt-1">Renovación con envío automático a WhatsApp y Cobro Directo</h3>
-                        <p class="text-xs text-slate-600 mt-1">Ahora al renovar una suscripción o presionar el botón de cobro en Acciones, se genera un mensaje personalizado listo para enviar al WhatsApp del cliente.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ================= VISTA 7: PERFIL ================= -->
-            <section id="view-perfil" class="view-section hidden p-4 lg:p-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs max-w-xl">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full bg-[#6333F6] text-white font-bold text-xl flex items-center justify-center">
-                            JV
-                        </div>
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800">Jhilmer Valencia</h2>
-                            <p class="text-xs text-slate-500">Administrador • LIAM STREAM 2026</p>
-                            <span class="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">Plan Pro Activo</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-60 bg-white border-r border-slate-200/80 flex flex-col justify-between shrink-0 transition-all duration-200 z-30">
+    <div>
+      <!-- Logo LIAM STREAM -->
+      <div class="p-4 border-b border-slate-100">
+        <div class="bg-[#0b0b0d] rounded-2xl p-3.5 flex flex-col items-center justify-center shadow-md border border-amber-500/20">
+          <svg width="160" height="78" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f6d365"/>
+                <stop offset="50%" stop-color="#d4af37"/>
+                <stop offset="100%" stop-color="#aa7c11"/>
+              </linearGradient>
+              <linearGradient id="silverGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="100%" stop-color="#cbd5e1"/>
+              </linearGradient>
+            </defs>
+            <path d="M88 12 C88 8 93 6 97 8 L134 29 C138 31 138 37 134 39 L97 60 C93 62 88 60 88 56 Z" fill="#18181b" stroke="#3f3f46" stroke-width="1.2"/>
+            <path d="M86 11 C86 7 91 5 94 7 L94 49 L126 49 L115 56 C103 63 86 64 86 52 Z" fill="url(#goldGrad)"/>
+            <text x="110" y="83" text-anchor="middle" fill="url(#silverGrad)" font-family="Inter, sans-serif" font-weight="800" font-size="25" letter-spacing="5">LIAM</text>
+            <polygon points="122,74 128,78 122,82" fill="url(#goldGrad)"/>
+            <line x1="34" y1="95" x2="64" y2="95" stroke="url(#goldGrad)" stroke-width="1.3"/>
+            <text x="110" y="98" text-anchor="middle" fill="url(#goldGrad)" font-family="Inter, sans-serif" font-weight="700" font-size="10" letter-spacing="4.5">STREAM</text>
+            <line x1="156" y1="95" x2="186" y2="95" stroke="url(#goldGrad)" stroke-width="1.3"/>
+            <text x="110" y="108" text-anchor="middle" fill="#a1a1aa" font-family="Inter, sans-serif" font-weight="500" font-size="6.2" letter-spacing="2.2">ENTRETENIMIENTO SIN LÍMITES</text>
+          </svg>
         </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="p-3 space-y-1 text-sm font-medium text-slate-600">
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </button>
+        <button onclick="switchView('clientes')" id="nav-clientes" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-indigo-50 text-indigo-600 font-semibold transition">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Clientes
+        </button>
+        <button onclick="switchView('mensajes')" id="nav-mensajes" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          Mensajes IA
+        </button>
+        <button onclick="switchView('config')" id="nav-config" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+          Nube Firebase
+        </button>
+      </nav>
     </div>
 
-    <!-- ================= MODAL: AGREGAR / EDITAR CLIENTE ================= -->
-    <div id="client-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden animate-fadeIn">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 id="modal-title" class="text-base font-bold text-slate-800">Agregar Nuevo Cliente</h3>
-                <button onclick="closeClientModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <form id="client-form" onsubmit="saveClientForm(event)" class="p-6 space-y-4 max-h-[82vh] overflow-y-auto custom-scrollbar">
-                <input type="hidden" id="client-id">
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre de Cliente *</label>
-                        <input type="text" id="field-nombre" required placeholder="Ej. PILAR" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Venta En</label>
-                        <select id="field-ventaEn" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                            <option value="WhatsApp">WhatsApp</option>
-                            <option value="whatsapp">whatsapp</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="—">— (Sin especificar)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Contacto (WhatsApp) *</label>
-                        <input type="text" id="field-contacto" required placeholder="Ej. 986594415" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Plataforma *</label>
-                        <select id="field-plataforma" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                            <option value="SPOTIFY">SPOTIFY</option>
-                            <option value="netflix">netflix</option>
-                            <option value="Crunchyroll">Crunchyroll</option>
-                            <option value="Disney+">Disney+</option>
-                            <option value="HBO Max">HBO Max</option>
-                            <option value="Prime Video">Prime Video</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Banco / Método</label>
-                        <select id="field-banco" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                            <option value="Yape">Yape</option>
-                            <option value="Plin">Plin</option>
-                            <option value="BCP">BCP</option>
-                            <option value="Interbank">Interbank</option>
-                            <option value="—">—</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Perfil / Cuenta</label>
-                        <select id="field-perfilCuenta" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                            <option value="CUENTA">CUENTA</option>
-                            <option value="PERFIL">PERFIL</option>
-                        </select>
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Correo de la Cuenta *</label>
-                        <input type="email" id="field-correo" required placeholder="ejemplo@correo.com" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
-                        <input type="text" id="field-password" required placeholder="••••••••" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">PIN del Perfil (Máx. 6 dígitos)</label>
-                        <input
-                            type="text"
-                            id="field-pinPerfil"
-                            maxlength="6"
-                            inputmode="numeric"
-                            pattern="[0-9]{0,6}"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
-                            placeholder="Ej. 123456"
-                            class="w-full px-3 py-2 text-xs font-mono tracking-widest rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]"
-                        >
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Proveedor</label>
-                        <input type="text" id="field-proveedor" placeholder="Ej. ZONA, jota, —" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Contacto Proveedor</label>
-                        <input type="text" id="field-contactoProv" placeholder="Ej. 908 552 156 o —" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monto Pagado (S/)</label>
-                        <input type="number" id="field-monto" value="45" min="0" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Precio Venta (S/)</label>
-                        <input type="number" id="field-precio" value="15" min="0" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Días para Vencer</label>
-                        <input type="number" id="field-vence" value="30" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha Vencimiento</label>
-                        <input type="text" id="field-fecha" value="16/12/2026" placeholder="DD/MM/YYYY" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#6333F6]">
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                    <button type="button" onclick="closeClientModal()" class="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-full text-xs font-semibold text-white bg-[#6333F6] hover:bg-[#5224E0] transition-colors cursor-pointer">
-                        Guardar Cliente
-                    </button>
-                </div>
-            </form>
+    <!-- Cloud Status Footer -->
+    <div class="p-3 border-t border-slate-100">
+      <div id="cloud-status-box" onclick="switchView('config')" class="cursor-pointer p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs">
+        <div class="flex items-center gap-2 font-semibold text-emerald-800">
+          <span id="cloud-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="cloud-label">Nube Firebase Activa</span>
         </div>
+        <p id="cloud-sub" class="text-[11px] text-emerald-700 mt-1">Sincronizado en tiempo real</p>
+      </div>
     </div>
+  </aside>
 
-    <!-- ================= MODAL: IA RECORDATORIOS ================= -->
-    <div id="ia-reminder-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden">
-            <div class="px-6 py-4 bg-gradient-to-r from-[#F59E0B] to-[#EA580C] text-white flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    <h3 class="text-sm font-bold">IA Recordatorios — Envío Directo por WhatsApp</h3>
-                </div>
-                <button onclick="closeAIReminderModal()" class="p-1 rounded-lg hover:bg-white/20">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col min-w-0">
 
-            <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-600">
-                    Haz clic en <strong>Enviar WhatsApp</strong> junto a cada cliente vencido o próximo a vencer para abrir su chat con el recordatorio personalizado de <strong>LIAM STREAM</strong>:
-                </p>
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/80 px-5 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+      <div class="flex items-center gap-3 flex-wrap">
+        <button onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <h1 id="page-title" class="text-lg font-bold text-slate-800 mr-2">Clientes</h1>
 
-                <div id="ia-urgent-list" class="max-h-64 overflow-y-auto custom-scrollbar space-y-2 border border-slate-100 rounded-xl p-3 bg-slate-50">
-                    <!-- Lista dinámica -->
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeAIReminderModal()" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
+        <!-- Quick Status Pills -->
+        <div id="status-pills" class="flex items-center gap-1.5 flex-wrap text-xs font-medium">
+          <button onclick="setQuickFilter('all')" data-filter="all" class="filter-pill px-3.5 py-1.5 rounded-full bg-indigo-950 text-white shadow-sm transition">Todo</button>
+          <button onclick="setQuickFilter('today')" data-filter="today" class="filter-pill px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Vence hoy</button>
+          <button onclick="setQuickFilter('soon')" data-filter="soon" class="filter-pill px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Próximos 3 días</button>
+          <button onclick="setQuickFilter('expired')" data-filter="expired" class="filter-pill px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Vencidos</button>
+          <button onclick="setQuickFilter('active')" data-filter="active" class="filter-pill px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Activos</button>
         </div>
-    </div>
+      </div>
 
-    <!-- ================= MODAL: RENOVAR SUSCRIPCIÓN + WHATSAPP ================= -->
-    <div id="renew-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/45 backdrop-blur-[2px] p-4">
-        <div class="bg-white rounded-[22px] shadow-2xl border border-slate-100 w-full max-w-[495px] overflow-hidden">
-            <!-- Header del Modal -->
-            <div class="px-6 pt-5 pb-3 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <i data-lucide="refresh-cw" class="w-5 h-5 text-[#16A34A]"></i>
-                    <h3 class="text-[17px] font-bold text-slate-800">Renovar suscripción</h3>
-                </div>
-                <button type="button" onclick="closeRenewModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="syncFromCloud(true)" title="Sincronizar con Firebase" class="p-2 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
 
-            <div class="px-6 pb-6 space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar">
-                <!-- Tarjeta Info del Cliente -->
-                <div class="bg-[#F8FAFC] border border-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5">
-                    <div id="renew-client-avatar" class="w-11 h-11 rounded-full bg-[#16A34A] text-white font-bold text-base flex items-center justify-center shrink-0">
-                        P
-                    </div>
-                    <div class="min-w-0">
-                        <p id="renew-client-name" class="text-[14px] font-bold text-slate-800 uppercase truncate">PILAR</p>
-                        <p id="renew-client-subtitle" class="text-xs text-slate-500 mt-0.5 truncate">
-                            SPOTIFY · vence el <strong class="text-slate-700 font-semibold">12 de noviembre de 2026</strong>
-                        </p>
-                    </div>
-                </div>
+        <button onclick="openClientModal()" class="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5 transition">
+          <span class="text-base leading-none">+</span> Agregar Cliente
+        </button>
 
-                <!-- Renovación rápida -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-2">Renovación rápida</label>
-                    <div class="grid grid-cols-3 gap-2.5" id="renew-quick-buttons">
-                        <button type="button" onclick="selectRenewQuickDays(7)" data-days="7" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
-                            +7 días
-                        </button>
-                        <button type="button" onclick="selectRenewQuickDays(15)" data-days="15" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
-                            +15 días
-                        </button>
-                        <button type="button" onclick="selectRenewQuickDays(30)" data-days="30" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-[#16A34A] bg-[#16A34A] text-white shadow-md shadow-emerald-500/25 transition-all cursor-pointer">
-                            +30 días
-                        </button>
-                        <button type="button" onclick="selectRenewQuickDays(60)" data-days="60" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
-                            +60 días
-                        </button>
-                        <button type="button" onclick="selectRenewQuickDays(90)" data-days="90" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
-                            +90 días
-                        </button>
-                        <button type="button" onclick="selectRenewQuickDays(180)" data-days="180" class="renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
-                            +6 meses
-                        </button>
-                    </div>
-                </div>
-
-                <!-- O elige una fecha específica -->
-                <div>
-                    <label for="renew-specific-date" class="block text-xs font-medium text-slate-600 mb-2">O elige una fecha específica</label>
-                    <input
-                        type="date"
-                        id="renew-specific-date"
-                        onchange="onRenewSpecificDateChange(this.value)"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-emerald-100 transition-all cursor-pointer"
-                    >
-                </div>
-
-                <!-- Banner Nueva fecha de vencimiento -->
-                <div class="bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl px-4 py-3 flex items-center gap-2.5 text-[#065F46]">
-                    <i data-lucide="clock" class="w-4 h-4 text-[#059669] shrink-0"></i>
-                    <span class="text-xs">
-                        Nueva fecha de vencimiento: <strong id="renew-new-date-label" class="font-bold text-[#047857]">16 de diciembre de 2026</strong>
-                    </span>
-                </div>
-
-                <!-- Mensaje personalizado de renovación para WhatsApp -->
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label for="renew-message-text" class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-[#16A34A]"></i>
-                            <span>Mensaje de renovación para WhatsApp</span>
-                        </label>
-                        <span class="text-[10.5px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Editable</span>
-                    </div>
-                    <textarea
-                        id="renew-message-text"
-                        rows="5"
-                        class="w-full p-3 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:border-[#16A34A] leading-relaxed text-slate-700"
-                    ></textarea>
-                    <label class="mt-2 inline-flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
-                        <input type="checkbox" id="renew-send-whatsapp-checkbox" checked class="rounded border-slate-300 text-[#16A34A] focus:ring-[#16A34A] cursor-pointer">
-                        <span>Abrir WhatsApp del cliente automáticamente al renovar</span>
-                    </label>
-                </div>
-
-                <!-- Botones Inferiores -->
-                <div class="pt-1 flex items-center justify-end gap-2.5">
-                    <button type="button" onclick="closeRenewModal()" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="button" onclick="confirmRenewSubscription()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#16A34A] hover:bg-[#15803D] shadow-md shadow-emerald-600/20 transition-all cursor-pointer">
-                        <i data-lucide="check" class="w-4 h-4"></i>
-                        <span>Renovar y Enviar</span>
-                    </button>
-                </div>
-            </div>
+        <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">JV</div>
+          <div class="hidden sm:block leading-tight">
+            <div class="text-xs font-bold text-slate-800">Jhilmer Valencia</div>
+            <div class="text-[11px] text-slate-400">LIAM STREAM</div>
+          </div>
         </div>
-    </div>
+      </div>
+    </header>
 
-    <!-- ================= MODAL: COBRAR AL CLIENTE ================= -->
-    <div id="charge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-[2px] p-4">
-        <div class="bg-white rounded-[22px] shadow-2xl border border-slate-100 w-full max-w-[480px] overflow-hidden">
-            <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                        <i data-lucide="banknote" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-[16px] font-bold text-slate-800">Cobrar al cliente</h3>
-                        <p class="text-[11px] text-slate-400">Envía recordatorio de pago o registra el cobro</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeChargeModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+    <!-- VIEW: CLIENTES -->
+    <main id="view-clientes" class="p-5 flex-1">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-3">
+            <h2 class="text-base font-bold text-slate-800">Clientes vendidos (<span id="count-visible">0</span>/<span id="count-total">0</span>)</h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <input id="search-input" oninput="renderTable()" type="text" placeholder="Buscar por nombre, contacto, plataforma o PIN..." class="w-64 sm:w-72 pl-3.5 pr-8 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-400 bg-slate-50/70" />
             </div>
 
-            <div class="p-6 space-y-4">
-                <!-- Tarjeta del cliente -->
-                <div class="bg-amber-50/70 border border-amber-200/70 rounded-2xl p-3.5 flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div id="charge-client-avatar" class="w-10 h-10 rounded-full bg-amber-500 text-white font-bold text-sm flex items-center justify-center shrink-0">
-                            P
-                        </div>
-                        <div class="min-w-0">
-                            <p id="charge-client-name" class="text-sm font-bold text-slate-800 truncate">PILAR</p>
-                            <p id="charge-client-meta" class="text-[11.5px] text-slate-500 truncate">SPOTIFY • CUENTA</p>
-                        </div>
-                    </div>
-                    <span id="charge-client-status" class="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-rose-100 text-rose-700 shrink-0">
-                        -4 días
-                    </span>
-                </div>
+            <button onclick="deleteSelected()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">Eliminar selec.</button>
+            <button onclick="exportCSV()" class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold transition">Descargar Excel</button>
+            <button onclick="exportJSON()" class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition">Respaldo JSON</button>
+            <label class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold cursor-pointer transition">
+              Importar
+              <input type="file" accept=".json,.csv" onchange="importFile(event)" class="hidden" />
+            </label>
 
-                <!-- Monto y Método de pago -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monto a cobrar (S/)</label>
-                        <input
-                            type="number"
-                            id="charge-amount-input"
-                            min="0"
-                            step="0.5"
-                            oninput="updateChargeMessagePreview()"
-                            class="w-full px-3.5 py-2 text-xs font-bold text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500"
-                        >
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Método de pago</label>
-                        <select id="charge-method-select" onchange="updateChargeMessagePreview()" class="w-full px-3 py-2 text-xs font-medium text-slate-700 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500">
-                            <option value="Yape">Yape</option>
-                            <option value="Plin">Plin</option>
-                            <option value="Transferencia BCP">Transferencia BCP</option>
-                            <option value="Efectivo">Efectivo</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Mensaje personalizado de cobro -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mensaje de cobro para WhatsApp</label>
-                    <textarea id="charge-message-text" rows="4" class="w-full p-3 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
-                </div>
-
-                <!-- Botones de acción -->
-                <div class="pt-2 flex flex-wrap items-center justify-between gap-2">
-                    <button type="button" onclick="registerClientPayment()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer">
-                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                        <span>Registrar pago recibido</span>
-                    </button>
-
-                    <button type="button" onclick="sendChargeWhatsApp()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-md shadow-amber-500/20 transition-all cursor-pointer">
-                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                        <span>Enviar cobro por WhatsApp</span>
-                    </button>
-                </div>
-            </div>
+            <select id="platform-filter" onchange="renderTable()" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-600 focus:outline-none">
+              <option value="ALL">Todas las plataformas</option>
+              <option value="NETFLIX">NETFLIX</option>
+              <option value="SPOTIFY">SPOTIFY</option>
+              <option value="DISNEY+">DISNEY+</option>
+              <option value="MAX">MAX</option>
+              <option value="PRIME VIDEO">PRIME VIDEO</option>
+              <option value="CRUNCHYROLL">CRUNCHYROLL</option>
+              <option value="YOUTUBE">YOUTUBE</option>
+              <option value="IPTV">IPTV</option>
+            </select>
+          </div>
         </div>
+
+        <div class="overflow-x-auto custom-scrollbar border border-slate-100 rounded-xl">
+          <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr class="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th class="py-3 px-3"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)" class="rounded border-slate-300" /></th>
+                <th class="py-3 px-3">NOMBRE DE CLIENTE</th>
+                <th class="py-3 px-3">VENTA EN</th>
+                <th class="py-3 px-3">CONTACTO</th>
+                <th class="py-3 px-3">PLATAFORMA</th>
+                <th class="py-3 px-3">BANCO</th>
+                <th class="py-3 px-3">CORREO CUENTA</th>
+                <th class="py-3 px-3">CONTRASEÑA</th>
+                <th class="py-3 px-3">PIN DEL PERFIL</th>
+                <th class="py-3 px-3">PROVEEDOR</th>
+                <th class="py-3 px-3">MONTO</th>
+                <th class="py-3 px-3">PERFIL/CUENTA</th>
+                <th class="py-3 px-3">PRECIO</th>
+                <th class="py-3 px-3">VENCE</th>
+                <th class="py-3 px-3">FECHA</th>
+                <th class="py-3 px-3 text-center">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody" class="divide-y divide-slate-100 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- VIEW: DASHBOARD -->
+    <section id="view-dashboard" class="p-5 hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="text-xs font-semibold text-slate-400 uppercase">Total Clientes</div>
+          <div id="stat-total" class="text-2xl font-extrabold text-slate-800 mt-1">0</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="text-xs font-semibold text-emerald-600 uppercase">Cuentas Activas</div>
+          <div id="stat-active" class="text-2xl font-extrabold text-emerald-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="text-xs font-semibold text-rose-600 uppercase">Cuentas Vencidas</div>
+          <div id="stat-expired" class="text-2xl font-extrabold text-rose-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="text-xs font-semibold text-indigo-600 uppercase">Ingresos Totales</div>
+          <div id="stat-revenue" class="text-2xl font-extrabold text-indigo-600 mt-1">S/ 0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: MENSAJES IA -->
+    <section id="view-mensajes" class="p-5 hidden">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 max-w-3xl">
+        <h2 class="text-base font-bold text-slate-800 mb-1">Plantillas de Mensajes Automáticos WhatsApp</h2>
+        <p class="text-xs text-slate-500 mb-4">Personaliza los textos que se envían al cobrar o renovar a tus clientes.</p>
+        <div class="space-y-4 text-xs">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Mensaje de Cobro / Vencimiento</label>
+            <textarea id="tpl-cobro" rows="4" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-indigo-400">Hola *{cliente}* 👋, te saludamos de *LIAM STREAM*. Te recordamos que tu suscripción de *{plataforma}* ({tipo}) por *S/ {precio}* ({estado}). Por favor confírmanos tu pago por *{banco}* para mantener tu servicio activo sin cortes. ¡Gracias! 🎬✨</textarea>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Mensaje de Confirmación de Renovación</label>
+            <textarea id="tpl-renovacion" rows="5" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-indigo-400">¡Hola *{cliente}*! ✅ Tu suscripción en *LIAM STREAM* ha sido *RENOVADA* con éxito por *{dias}*.
+
+📺 Plataforma: *{plataforma}* ({tipo})
+📧 Correo: {correo}
+🔑 PIN Perfil: {pin}
+📅 Nuevo vencimiento: *{fecha}*
+
+¡Gracias por seguir disfrutando con nosotros! 🍿✨</textarea>
+          </div>
+          <button onclick="saveTemplates()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Guardar Plantillas</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: CONFIG FIREBASE CLOUD -->
+    <section id="view-config" class="p-5 hidden">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 max-w-2xl">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">☁️</div>
+          <div>
+            <h2 class="text-base font-bold text-slate-800">Sincronización en la Nube (Firebase Realtime Database)</h2>
+            <p class="text-xs text-slate-500">Tu base de datos ya está vinculada automáticamente para sincronizar PC y celular.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-xs mt-5">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">URL de tu Firebase Realtime Database</label>
+            <input id="firebase-url-input" type="url" value="https://liam-stream-default-rtdb.firebaseio.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-xs" />
+          </div>
+
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="saveFirebaseConfig()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition">Conectar y Sincronizar</button>
+            <button onclick="pushAllToCloud()" class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold transition">Subir datos locales a la Nube</button>
+            <button onclick="disconnectFirebase()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold transition">Desconectar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR CLIENTE -->
+  <div id="client-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 id="modal-title" class="text-base font-bold text-slate-800">Agregar Nuevo Cliente</h3>
+        <button onclick="closeClientModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <form id="client-form" onsubmit="saveClientForm(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-4 text-xs">
+        <input type="hidden" id="f-id" />
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Nombre del Cliente *</label>
+          <input id="f-nombre" required type="text" placeholder="Ej. PILAR" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Contacto WhatsApp *</label>
+          <input id="f-contacto" required type="text" placeholder="Ej. 986594415" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Canal de Venta</label>
+          <select id="f-venta" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Plataforma</label>
+          <select id="f-plataforma" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="NETFLIX">NETFLIX</option>
+            <option value="SPOTIFY">SPOTIFY</option>
+            <option value="DISNEY+">DISNEY+</option>
+            <option value="MAX">MAX</option>
+            <option value="PRIME VIDEO">PRIME VIDEO</option>
+            <option value="CRUNCHYROLL">CRUNCHYROLL</option>
+            <option value="YOUTUBE">YOUTUBE</option>
+            <option value="IPTV">IPTV</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Banco / Medio de Pago</label>
+          <select id="f-banco" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="Yape">Yape</option>
+            <option value="Plin">Plin</option>
+            <option value="BCP">BCP</option>
+            <option value="Interbank">Interbank</option>
+            <option value="Efectivo">Efectivo</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Tipo (Perfil / Cuenta)</label>
+          <select id="f-tipo" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="PERFIL">PERFIL</option>
+            <option value="CUENTA">CUENTA</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Correo de la Cuenta</label>
+          <input id="f-correo" type="text" placeholder="correo@ejemplo.com" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Contraseña</label>
+          <input id="f-password" type="text" placeholder="••••••••" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">PIN del Perfil (máx. 6 dígitos)</label>
+          <input id="f-pin" type="text" inputmode="numeric" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)" placeholder="Ej. 1234" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Proveedor</label>
+          <input id="f-proveedor" type="text" placeholder="Ej. ZONA" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Monto Proveedor (S/)</label>
+          <input id="f-monto" type="number" step="0.01" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Precio Venta (S/)</label>
+          <input id="f-precio" type="number" step="0.01" value="15" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="font-semibold text-slate-600 block mb-1">Fecha de Vencimiento *</label>
+          <input id="f-fecha" required type="date" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+        </div>
+
+        <div class="sm:col-span-2 flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeClientModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Guardar Cliente</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- ================= JAVASCRIPT DE LÓGICA Y ESTADO ================= -->
-    <script>
-        const STORAGE_KEY = 'liam_stream_clients_v1';
+  <!-- MODAL: RENOVAR SUSCRIPCIÓN -->
+  <div id="renew-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2 text-slate-800 font-bold text-base">
+          <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">↻</span>
+          Renovar suscripción
+        </div>
+        <button onclick="closeRenewModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
 
-        const DEFAULT_CLIENTS = [
-            { id: 1, nombre: 'PILAR', ventaEn: 'WhatsApp', contacto: '986594415', plataforma: 'SPOTIFY', banco: 'Yape', correo: 'azuar711@zonecasas.com', password: '••••••••', pinPerfil: '1024', proveedor: 'ZONA', contactoProv: '—', monto: 6, perfilCuenta: 'CUENTA', precio: 12, vence: -4, fecha: '12/11/2026' },
-            { id: 2, nombre: 'manuel', ventaEn: 'WhatsApp', contacto: '975362373', plataforma: 'netflix', banco: 'Yape', correo: 'prels06g@gmail.com', password: '••••••••', pinPerfil: '2026', proveedor: 'jota', contactoProv: '908 552 156', monto: 35, perfilCuenta: 'CUENTA', precio: 45, vence: -3, fecha: '13/11/2026' },
-            { id: 3, nombre: 'Nancy', ventaEn: 'WhatsApp', contacto: '961717636', plataforma: 'SPOTIFY', banco: 'Yape', correo: 'eular7151@zonecasas.com', password: '••••••••', pinPerfil: '—', proveedor: 'ZONA', contactoProv: '—', monto: 6, perfilCuenta: 'CUENTA', precio: 12, vence: 2, fecha: '18/11/2026' },
-            { id: 4, nombre: 'manuad', ventaEn: 'WhatsApp', contacto: '987260811', plataforma: '—', banco: '—', correo: 'andertozw-bylo@gmail.com', password: '••••••••', pinPerfil: '4589', proveedor: '—', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 6, fecha: '22/11/2026' },
-            { id: 5, nombre: 'ana', ventaEn: 'WhatsApp', contacto: '935490121', plataforma: 'netflix', banco: 'Plin', correo: 'brianasenia51@gmail.com', password: '••••••••', pinPerfil: '1122', proveedor: '—', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 7, fecha: '23/11/2026' },
-            { id: 6, nombre: 'sebastian', ventaEn: 'WhatsApp', contacto: '940181826', plataforma: 'Crunchyroll', banco: 'Yape', correo: 'fabianninaquispe@gmail.com', password: '••••••••', pinPerfil: '3344', proveedor: '—', contactoProv: '—', monto: 0, perfilCuenta: 'PERFIL', precio: 5, vence: 7, fecha: '23/11/2026' },
-            { id: 7, nombre: 'Lleyon', ventaEn: 'whatsapp', contacto: '956320390', plataforma: 'netflix', banco: 'Yape', correo: 'matthewlumess.go@dark.com', password: '••••••••', pinPerfil: '7788', proveedor: 'aj', contactoProv: '—', monto: 45, perfilCuenta: 'CUENTA', precio: 15, vence: 8, fecha: '24/11/2026' },
-            { id: 8, nombre: 'tito', ventaEn: 'WhatsApp', contacto: '943 406 428', plataforma: 'netflix', banco: 'Yape', correo: 'matthewlumess.go@dark.com', password: '••••••••', pinPerfil: '5501', proveedor: '—', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 11, fecha: '27/11/2026' },
-            { id: 9, nombre: 'liz', ventaEn: 'WhatsApp', contacto: '989050759', plataforma: 'netflix', banco: 'Yape', correo: 'christelepetion.us@black.com', password: '••••••••', pinPerfil: '9012', proveedor: 'aj', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 14, fecha: '30/11/2026' },
-            { id: 10, nombre: 'brenda', ventaEn: 'WhatsApp', contacto: '901049015', plataforma: 'SPOTIFY', banco: 'Plin', correo: 'stefany.vipstreaming@gmail.com', password: '••••••••', pinPerfil: '—', proveedor: '—', contactoProv: '—', monto: 0, perfilCuenta: 'PERFIL', precio: 7, vence: 14, fecha: '30/11/2026' },
-            { id: 11, nombre: 'carlos', ventaEn: '—', contacto: '977980376', plataforma: 'Crunchyroll', banco: 'Yape', correo: 'fabianninaquispe@gmail.com', password: '••••••••', pinPerfil: '6420', proveedor: '—', contactoProv: '—', monto: 0, perfilCuenta: 'PERFIL', precio: 5, vence: 14, fecha: '30/11/2026' },
-            { id: 12, nombre: 'IVON', ventaEn: 'WhatsApp', contacto: '942971255', plataforma: 'netflix', banco: 'Yape', correo: 'christelepetion.us@black.com', password: '••••••••', pinPerfil: '8181', proveedor: '—', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 17, fecha: '03/12/2026' },
-            { id: 13, nombre: 'JHOEL', ventaEn: 'WhatsApp', contacto: '930413167', plataforma: 'netflix', banco: 'Yape', correo: 'brianasenia51@gmail.com', password: '••••••••', pinPerfil: '2468', proveedor: 'ZONA', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 18, fecha: '04/12/2026' },
-            { id: 14, nombre: 'david', ventaEn: 'WhatsApp', contacto: '917945520', plataforma: 'netflix', banco: 'Yape', correo: 'brianasenia51@gmail.com', password: '••••••••', pinPerfil: '1357', proveedor: '—', contactoProv: '—', monto: 45, perfilCuenta: 'PERFIL', precio: 15, vence: 18, fecha: '04/12/2026' },
-            { id: 15, nombre: 'valeria', ventaEn: 'WhatsApp', contacto: '954128930', plataforma: 'Disney+', banco: 'Yape', correo: 'valeria.disney26@gmail.com', password: '••••••••', pinPerfil: '9900', proveedor: 'ZONA', contactoProv: '—', monto: 30, perfilCuenta: 'PERFIL', precio: 12, vence: 0, fecha: '16/11/2026' },
-            { id: 16, nombre: 'andres', ventaEn: 'WhatsApp', contacto: '922847102', plataforma: 'HBO Max', banco: 'Plin', correo: 'andres.max2026@gmail.com', password: '••••••••', pinPerfil: '4321', proveedor: 'jota', contactoProv: '908 552 156', monto: 25, perfilCuenta: 'CUENTA', precio: 14, vence: 21, fecha: '07/12/2026' }
-        ];
+      <div class="bg-slate-50 rounded-xl p-3.5 flex items-center gap-3 mb-4 border border-slate-100">
+        <div id="renew-avatar" class="w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-sm shrink-0">P</div>
+        <div>
+          <div id="renew-name" class="font-bold text-slate-800 text-sm">CLIENTE</div>
+          <div id="renew-sub" class="text-xs text-slate-500">PLATAFORMA · vence el ...</div>
+        </div>
+      </div>
 
-        let clients = [];
-        let filteredClients = [];
-        let currentStatusFilter = 'todo';
-        let currentPage = 1;
-        let selectedIds = new Set();
-        let revealedPasswords = new Set();
-        let renewingClientId = null;
-        let selectedRenewDateObj = null;
-        let selectedRenewDaysLabel = '30 días';
-        let chargingClientId = null;
-        const itemsPerPage = 14;
+      <div class="text-xs font-semibold text-slate-600 mb-2">Renovación rápida</div>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <button type="button" onclick="selectRenewDays(7, this)" class="renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition">+7 días</button>
+        <button type="button" onclick="selectRenewDays(15, this)" class="renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition">+15 días</button>
+        <button type="button" onclick="selectRenewDays(30, this)" class="renew-opt py-2.5 rounded-xl bg-emerald-500 text-white border border-emerald-500 text-xs font-bold shadow-sm transition">+30 días</button>
+        <button type="button" onclick="selectRenewDays(60, this)" class="renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition">+60 días</button>
+        <button type="button" onclick="selectRenewDays(90, this)" class="renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition">+90 días</button>
+        <button type="button" onclick="selectRenewDays(180, this)" class="renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition">+6 meses</button>
+      </div>
 
-        let apiConfig = {
-            senderPhone: '+51 999 888 777',
-            holderName: 'Jhilmer Valencia'
-        };
-        let apiLogs = [];
+      <div class="text-xs font-semibold text-slate-600 mb-1.5">O elige una fecha específica</div>
+      <input id="renew-custom-date" type="date" onchange="onCustomRenewDateChange()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs mb-3" />
 
-        const BASE_TODAY_DATE = new Date(2026, 10, 16);
-        const SPANISH_MONTHS = [
-            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-        ];
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5 text-xs text-emerald-800 flex items-center gap-2 mb-3">
+        <span>🕒</span>
+        <span>Nueva fecha de vencimiento: <strong id="renew-new-date-text">--</strong></span>
+      </div>
 
-        // ================= INITIALIZATION =================
-        document.addEventListener('DOMContentLoaded', () => {
-            loadClients();
-            loadApiConfigAndLogs();
-            handleFilters();
+      <div class="mb-3">
+        <label class="text-xs font-semibold text-slate-600 block mb-1">Mensaje personalizado de renovación para WhatsApp</label>
+        <textarea id="renew-wa-msg" rows="4" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:border-emerald-500"></textarea>
+      </div>
+
+      <label class="flex items-center gap-2 text-xs text-slate-600 mb-4 cursor-pointer">
+        <input id="renew-send-wa" type="checkbox" checked class="rounded text-emerald-600" />
+        Abrir WhatsApp del cliente automáticamente al renovar
+      </label>
+
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeRenewModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Cancelar</button>
+        <button type="button" onclick="confirmRenewal()" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition">✓ Renovar y Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COBRAR AL CLIENTE -->
+  <div id="charge-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2 text-slate-800 font-bold text-base">
+          <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">💲</span>
+          Cobrar al cliente
+        </div>
+        <button onclick="closeChargeModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 mb-4 flex items-center justify-between">
+        <div>
+          <div id="charge-client-name" class="font-bold text-slate-800 text-sm">CLIENTE</div>
+          <div id="charge-client-info" class="text-xs text-slate-500">PLATAFORMA · Estado</div>
+        </div>
+        <div id="charge-client-phone" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">999999999</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Monto a cobrar (S/)</label>
+          <input id="charge-amount" type="number" step="0.01" oninput="updateChargeMessage()" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold" />
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 block mb-1">Método de pago</label>
+          <select id="charge-method" onchange="updateChargeMessage()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="Yape">Yape</option>
+            <option value="Plin">Plin</option>
+            <option value="BCP">BCP</option>
+            <option value="Interbank">Interbank</option>
+            <option value="Efectivo">Efectivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="text-xs font-semibold text-slate-600 block mb-1">Mensaje de cobro para WhatsApp</label>
+        <textarea id="charge-msg" rows="4" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:border-amber-500"></textarea>
+      </div>
+
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" onclick="closeChargeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Cancelar</button>
+        <button type="button" onclick="markAsPaidOnly()" class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">Registrar Pago</button>
+        <button type="button" onclick="sendChargeWhatsApp()" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition">Enviar cobro por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tu base de datos Firebase ya conectada por defecto en todos tus dispositivos:
+    const DEFAULT_FIREBASE_URL = "https://liam-stream-default-rtdb.firebaseio.com";
+
+    const STORAGE_KEY = "liam_stream_clients_v1";
+    const FIREBASE_KEY = "liam_stream_firebase_url";
+    const TPL_KEY = "liam_stream_templates_v1";
+
+    const MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+    const INITIAL_CLIENTS = [
+      { id: 1, nombre: "PILAR", venta: "WhatsApp", contacto: "986594415", plataforma: "SPOTIFY", banco: "Yape", correo: "azucar211@zozmail.com", password: "••••••••", pin: "1122", proveedor: "ZONA", monto: 6, tipo: "CUENTA", precio: 12, fecha: "2026-11-12" },
+      { id: 2, nombre: "manuel", venta: "WhatsApp", contacto: "975362373", plataforma: "NETFLIX", banco: "Yape", correo: "prelo06g@gmail.com", password: "••••••••", pin: "2026", proveedor: "jota", monto: 35, tipo: "CUENTA", precio: 45, fecha: "2026-11-13" },
+      { id: 3, nombre: "Nancy", venta: "WhatsApp", contacto: "961717636", plataforma: "SPOTIFY", banco: "Yape", correo: "azucar7151@zozmail.com", password: "••••••••", pin: "4455", proveedor: "ZONA", monto: 6, tipo: "CUENTA", precio: 12, fecha: "2026-11-18" },
+      { id: 4, nombre: "manuad", venta: "WhatsApp", contacto: "987260811", plataforma: "NETFLIX", banco: "Yape", correo: "andersonw-byte@gmail.com", password: "••••••••", pin: "1234", proveedor: "-", monto: 45, tipo: "PERFIL", precio: 15, fecha: "2026-11-22" },
+      { id: 5, nombre: "ana", venta: "WhatsApp", contacto: "935490121", plataforma: "NETFLIX", banco: "Plin", correo: "brianasalia51@gmail.com", password: "••••••••", pin: "7890", proveedor: "-", monto: 45, tipo: "PERFIL", precio: 15, fecha: "2026-11-23" },
+      { id: 6, nombre: "sebastian", venta: "WhatsApp", contacto: "910181826", plataforma: "CRUNCHYROLL", banco: "Yape", correo: "fabianinaquispe@gmail.com", password: "••••••••", pin: "3344", proveedor: "-", monto: 0, tipo: "PERFIL", precio: 5, fecha: "2026-11-23" }
+    ];
+
+    let clients = [];
+    let currentFilter = "all";
+    let revealedPasswords = {};
+    let activeRenewClientId = null;
+    let selectedRenewDays = 30;
+    let computedRenewDateISO = "";
+    let activeChargeClientId = null;
+
+    function getFirebaseUrl() {
+      const saved = localStorage.getItem(FIREBASE_KEY) || DEFAULT_FIREBASE_URL;
+      return saved ? saved.trim().replace(/\/+$/, "") : "";
+    }
+
+    function updateCloudBadge(connected, customText) {
+      const box = document.getElementById("cloud-status-box");
+      const dot = document.getElementById("cloud-dot");
+      const label = document.getElementById("cloud-label");
+      const sub = document.getElementById("cloud-sub");
+
+      if (connected) {
+        box.className = "cursor-pointer p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        label.className = "font-semibold text-emerald-800";
+        label.textContent = "Nube Firebase Activa";
+        sub.className = "text-[11px] text-emerald-700 mt-1";
+        sub.textContent = customText || "Sincronizado en tiempo real";
+      } else {
+        box.className = "cursor-pointer p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-xs";
+        dot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+        label.className = "font-semibold text-amber-800";
+        label.textContent = "Modo Local (Sin nube)";
+        sub.className = "text-[11px] text-amber-700 mt-1";
+        sub.textContent = customText || "Haz clic para conectar Firebase";
+      }
+    }
+
+    async function loadClients() {
+      const localRaw = localStorage.getItem(STORAGE_KEY);
+      clients = localRaw ? JSON.parse(localRaw) : [...INITIAL_CLIENTS];
+
+      const fbUrl = getFirebaseUrl();
+      if (fbUrl) {
+        document.getElementById("firebase-url-input").value = fbUrl;
+        await syncFromCloud(false);
+      } else {
+        updateCloudBadge(false);
+      }
+      renderTable();
+      updateDashboardStats();
+    }
+
+    async function persistClients() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+      renderTable();
+      updateDashboardStats();
+
+      const fbUrl = getFirebaseUrl();
+      if (!fbUrl) return;
+
+      try {
+        updateCloudBadge(true, "Guardando en Firebase...");
+        const res = await fetch(`${fbUrl}/liam_clients.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(clients)
         });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        updateCloudBadge(true, `Guardado en nube (${now})`);
+      } catch (err) {
+        updateCloudBadge(false, "Error de conexión con Firebase");
+        showToast("No se pudo guardar en Firebase. Revisa tus reglas o URL.", "error");
+      }
+    }
 
-        function loadClients() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        clients = parsed;
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn('Error leyendo localStorage:', e);
-            }
-            clients = JSON.parse(JSON.stringify(DEFAULT_CLIENTS));
-            saveClientsToStorage();
+    async function syncFromCloud(notify = true) {
+      const fbUrl = getFirebaseUrl();
+      if (!fbUrl) {
+        if (notify) showToast("Primero configura tu URL de Firebase en 'Nube Firebase'", "error");
+        return;
+      }
+      try {
+        updateCloudBadge(true, "Sincronizando...");
+        const res = await fetch(`${fbUrl}/liam_clients.json`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          clients = data.filter(Boolean);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+        } else if (data && typeof data === "object") {
+          clients = Object.values(data).filter(Boolean);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+        } else if (data === null && clients.length > 0) {
+          await persistClients();
+        }
+        renderTable();
+        updateDashboardStats();
+        const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        updateCloudBadge(true, `Sincronizado (${now})`);
+        if (notify) showToast("Datos sincronizados con Firebase ☁️", "success");
+      } catch (err) {
+        updateCloudBadge(false, "Error al leer Firebase");
+        if (notify) showToast("Error al conectar con Firebase. Verifica la URL.", "error");
+      }
+    }
+
+    async function saveFirebaseConfig() {
+      const raw = document.getElementById("firebase-url-input").value.trim().replace(/\/+$/, "");
+      if (!raw || !raw.startsWith("https://")) {
+        showToast("Ingresa una URL válida de Firebase (https://...)", "error");
+        return;
+      }
+      localStorage.setItem(FIREBASE_KEY, raw);
+      await syncFromCloud(true);
+    }
+
+    async function pushAllToCloud() {
+      if (!getFirebaseUrl()) {
+        showToast("Primero pega y conecta tu URL de Firebase", "error");
+        return;
+      }
+      await persistClients();
+      showToast("Todos tus clientes locales se subieron a la nube ☁️", "success");
+    }
+
+    function disconnectFirebase() {
+      localStorage.removeItem(FIREBASE_KEY);
+      document.getElementById("firebase-url-input").value = "";
+      updateCloudBadge(false);
+      showToast("Firebase desconectado", "info");
+    }
+
+    function getDaysDiff(dateISO) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [y, m, d] = dateISO.split("-").map(Number);
+      const target = new Date(y, m - 1, d);
+      return Math.round((target - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function formatDateShort(dateISO) {
+      if (!dateISO) return "--";
+      const [y, m, d] = dateISO.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function formatDateLongES(dateISO) {
+      if (!dateISO) return "--";
+      const [y, m, d] = dateISO.split("-").map(Number);
+      return `${d} de ${MONTHS_ES[m - 1]} de ${y}`;
+    }
+
+    function addDaysToISO(baseISO, days) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [y, m, d] = baseISO.split("-").map(Number);
+      const currentExp = new Date(y, m - 1, d);
+      const start = currentExp > today ? currentExp : today;
+      start.setDate(start.getDate() + days);
+      const ny = start.getFullYear();
+      const nm = String(start.getMonth() + 1).padStart(2, "0");
+      const nd = String(start.getDate()).padStart(2, "0");
+      return `${ny}-${nm}-${nd}`;
+    }
+
+    function openWhatsAppChat(phone, message) {
+      let clean = String(phone || "").replace(/\D/g, "");
+      if (clean.length === 9 && clean.startsWith("9")) clean = "51" + clean;
+      const url = `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("clients-tbody");
+      const q = (document.getElementById("search-input").value || "").toLowerCase().trim();
+      const plat = document.getElementById("platform-filter").value;
+
+      const filtered = clients.filter(c => {
+        const diff = getDaysDiff(c.fecha);
+        if (currentFilter === "today" && diff !== 0) return false;
+        if (currentFilter === "soon" && (diff < 1 || diff > 3)) return false;
+        if (currentFilter === "expired" && diff >= 0) return false;
+        if (currentFilter === "active" && diff < 0) return false;
+        if (plat !== "ALL" && c.plataforma !== plat) return false;
+        if (q) {
+          const hay = `${c.nombre} ${c.contacto} ${c.plataforma} ${c.correo} ${c.pin || ""} ${c.proveedor}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById("count-visible").textContent = filtered.length;
+      document.getElementById("count-total").textContent = clients.length;
+
+      tbody.innerHTML = filtered.map(c => {
+        const diff = getDaysDiff(c.fecha);
+        let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+        let badgeText = `${diff} días`;
+        if (diff < 0) {
+          badgeClass = "bg-rose-50 text-rose-600 border-rose-200";
+          badgeText = `${diff} días`;
+        } else if (diff === 0) {
+          badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+          badgeText = "Hoy";
+        } else if (diff <= 3) {
+          badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+          badgeText = `${diff} días`;
         }
 
-        function saveClientsToStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-            } catch (e) {
-                console.warn('Error guardando en localStorage:', e);
-            }
+        const isShown = !!revealedPasswords[c.id];
+        const passDisplay = isShown ? escapeHtml(c.password || "") : "••••••••";
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-2.5 px-3"><input type="checkbox" data-id="${c.id}" class="row-check rounded border-slate-300" /></td>
+            <td class="py-2.5 px-3 font-semibold text-slate-700">
+              <span class="px-3 py-1 rounded-full border border-slate-200 bg-white pill-shadow inline-block">${escapeHtml(c.nombre)}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-medium">${escapeHtml(c.venta || "WhatsApp")}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <button onclick="quickWhatsApp(${c.id})" title="Abrir WhatsApp del cliente" class="px-3 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold flex items-center gap-1.5 transition">
+                <span>📱</span> ${escapeHtml(c.contacto)}
+              </button>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-3 py-1 rounded-full border border-slate-200 bg-white font-semibold text-slate-700">${escapeHtml(c.plataforma)}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-600">${escapeHtml(c.banco || "Yape")}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <button onclick="copyText('${escapeJs(c.correo)}', 'Correo copiado')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 max-w-[170px] truncate block">${escapeHtml(c.correo || "-")}</button>
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200 bg-white">
+                <span class="font-mono text-indigo-600">${passDisplay}</span>
+                <button onclick="togglePassword(${c.id})" class="text-slate-400 hover:text-indigo-600" title="Ver/Ocultar">👁</button>
+                <button onclick="copyText('${escapeJs(c.password)}', 'Contraseña copiada')" class="text-slate-400 hover:text-indigo-600" title="Copiar">❐</button>
+              </div>
+            </td>
+            <td class="py-2.5 px-3">
+              <button onclick="copyText('${escapeJs(c.pin || "")}', 'PIN copiado')" class="px-3 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-bold border border-indigo-200/70">
+                ${c.pin ? escapeHtml(c.pin) : "—"}
+              </button>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-600">${escapeHtml(c.proveedor || "-")}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">S/ ${Number(c.monto || 0)}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 font-bold text-[11px]">${escapeHtml(c.tipo || "PERFIL")}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-1 rounded-full border border-slate-200 bg-white font-semibold text-slate-700">S/ ${Number(c.precio || 0)}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-3 py-1 rounded-full border font-bold ${badgeClass}">${badgeText}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600">${formatDateShort(c.fecha)}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openRenewModal(${c.id})" title="Renovar suscripción" class="w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-sm transition">↻</button>
+                <button onclick="openChargeModal(${c.id})" title="Cobrar al cliente" class="w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center shadow-sm transition">💲</button>
+                <button onclick="openClientModal(${c.id})" title="Editar cliente" class="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-sm transition">✎</button>
+                <button onclick="deleteClient(${c.id})" title="Eliminar cliente" class="w-8 h-8 rounded-lg bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-sm transition">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function openRenewModal(id) {
+      const c = clients.find(item => item.id === id);
+      if (!c) return;
+      activeRenewClientId = id;
+      selectedRenewDays = 30;
+
+      document.getElementById("renew-avatar").textContent = (c.nombre || "C").charAt(0).toUpperCase();
+      document.getElementById("renew-name").textContent = c.nombre;
+      document.getElementById("renew-sub").textContent = `${c.plataforma} · vence el ${formatDateLongES(c.fecha)}`;
+
+      document.querySelectorAll(".renew-opt").forEach((btn, idx) => {
+        if (idx === 2) {
+          btn.className = "renew-opt py-2.5 rounded-xl bg-emerald-500 text-white border border-emerald-500 text-xs font-bold shadow-sm transition";
+        } else {
+          btn.className = "renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition";
         }
+      });
 
-        function resetDemoData() {
-            clients = JSON.parse(JSON.stringify(DEFAULT_CLIENTS));
-            selectedIds.clear();
-            saveClientsToStorage();
-            handleFilters();
-            showToast('Se restauraron los 16 clientes de ejemplo', 'success');
+      computedRenewDateISO = addDaysToISO(c.fecha, 30);
+      document.getElementById("renew-custom-date").value = computedRenewDateISO;
+      updateRenewalPreview();
+
+      const modal = document.getElementById("renew-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function selectRenewDays(days, btnEl) {
+      const c = clients.find(item => item.id === activeRenewClientId);
+      if (!c) return;
+      selectedRenewDays = days;
+
+      document.querySelectorAll(".renew-opt").forEach(b => {
+        b.className = "renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition";
+      });
+      btnEl.className = "renew-opt py-2.5 rounded-xl bg-emerald-500 text-white border border-emerald-500 text-xs font-bold shadow-sm transition";
+
+      computedRenewDateISO = addDaysToISO(c.fecha, days);
+      document.getElementById("renew-custom-date").value = computedRenewDateISO;
+      updateRenewalPreview();
+    }
+
+    function onCustomRenewDateChange() {
+      const val = document.getElementById("renew-custom-date").value;
+      if (!val) return;
+      selectedRenewDays = null;
+      document.querySelectorAll(".renew-opt").forEach(b => {
+        b.className = "renew-opt py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-400 transition";
+      });
+      computedRenewDateISO = val;
+      updateRenewalPreview();
+    }
+
+    function updateRenewalPreview() {
+      const c = clients.find(item => item.id === activeRenewClientId);
+      if (!c) return;
+      const longDate = formatDateLongES(computedRenewDateISO);
+      document.getElementById("renew-new-date-text").textContent = longDate;
+
+      const periodLabel = selectedRenewDays ? `${selectedRenewDays} días` : "un nuevo período";
+      const tpl = document.getElementById("tpl-renovacion").value;
+      const msg = tpl
+        .replace(/\{cliente\}/g, c.nombre)
+        .replace(/\{dias\}/g, periodLabel)
+        .replace(/\{plataforma\}/g, c.plataforma)
+        .replace(/\{tipo\}/g, c.tipo || "PERFIL")
+        .replace(/\{correo\}/g, c.correo || "-")
+        .replace(/\{pin\}/g, c.pin || "Sin PIN")
+        .replace(/\{fecha\}/g, longDate);
+
+      document.getElementById("renew-wa-msg").value = msg;
+    }
+
+    async function confirmRenewal() {
+      const c = clients.find(item => item.id === activeRenewClientId);
+      if (!c || !computedRenewDateISO) return;
+      c.fecha = computedRenewDateISO;
+
+      const sendWa = document.getElementById("renew-send-wa").checked;
+      const msg = document.getElementById("renew-wa-msg").value;
+
+      closeRenewModal();
+      await persistClients();
+      showToast(`Suscripción de ${c.nombre} renovada hasta ${formatDateShort(c.fecha)}`, "success");
+
+      if (sendWa) {
+        openWhatsAppChat(c.contacto, msg);
+      }
+    }
+
+    function closeRenewModal() {
+      const modal = document.getElementById("renew-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function openChargeModal(id) {
+      const c = clients.find(item => item.id === id);
+      if (!c) return;
+      activeChargeClientId = id;
+
+      const diff = getDaysDiff(c.fecha);
+      const statusTxt = diff < 0 ? `venció hace ${Math.abs(diff)} días` : diff === 0 ? "vence hoy" : `vence en ${diff} días`;
+
+      document.getElementById("charge-client-name").textContent = c.nombre;
+      document.getElementById("charge-client-info").textContent = `${c.plataforma} (${c.tipo}) · ${statusTxt}`;
+      document.getElementById("charge-client-phone").textContent = c.contacto;
+      document.getElementById("charge-amount").value = c.precio || 15;
+      document.getElementById("charge-method").value = c.banco || "Yape";
+
+      updateChargeMessage();
+      const modal = document.getElementById("charge-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function updateChargeMessage() {
+      const c = clients.find(item => item.id === activeChargeClientId);
+      if (!c) return;
+      const amount = document.getElementById("charge-amount").value;
+      const method = document.getElementById("charge-method").value;
+      const diff = getDaysDiff(c.fecha);
+      const statusTxt = diff < 0 ? `venció el ${formatDateShort(c.fecha)}` : diff === 0 ? "vence hoy" : `vence el ${formatDateShort(c.fecha)}`;
+
+      const tpl = document.getElementById("tpl-cobro").value;
+      const msg = tpl
+        .replace(/\{cliente\}/g, c.nombre)
+        .replace(/\{plataforma\}/g, c.plataforma)
+        .replace(/\{tipo\}/g, c.tipo || "PERFIL")
+        .replace(/\{precio\}/g, amount)
+        .replace(/\{estado\}/g, statusTxt)
+        .replace(/\{banco\}/g, method);
+
+      document.getElementById("charge-msg").value = msg;
+    }
+
+    async function markAsPaidOnly() {
+      const c = clients.find(item => item.id === activeChargeClientId);
+      if (!c) return;
+      c.precio = Number(document.getElementById("charge-amount").value) || c.precio;
+      c.banco = document.getElementById("charge-method").value;
+      closeChargeModal();
+      await persistClients();
+      showToast(`Pago de S/ ${c.precio} registrado para ${c.nombre}`, "success");
+    }
+
+    async function sendChargeWhatsApp() {
+      const c = clients.find(item => item.id === activeChargeClientId);
+      if (!c) return;
+      const msg = document.getElementById("charge-msg").value;
+      c.banco = document.getElementById("charge-method").value;
+      closeChargeModal();
+      await persistClients();
+      openWhatsAppChat(c.contacto, msg);
+    }
+
+    function closeChargeModal() {
+      const modal = document.getElementById("charge-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function quickWhatsApp(id) {
+      const c = clients.find(item => item.id === id);
+      if (!c) return;
+      openChargeModal(id);
+    }
+
+    function openClientModal(id = null) {
+      const modal = document.getElementById("client-modal");
+      document.getElementById("client-form").reset();
+      document.getElementById("f-id").value = "";
+
+      if (id) {
+        const c = clients.find(item => item.id === id);
+        if (!c) return;
+        document.getElementById("modal-title").textContent = "Editar Cliente";
+        document.getElementById("f-id").value = c.id;
+        document.getElementById("f-nombre").value = c.nombre;
+        document.getElementById("f-contacto").value = c.contacto;
+        document.getElementById("f-venta").value = c.venta || "WhatsApp";
+        document.getElementById("f-plataforma").value = c.plataforma;
+        document.getElementById("f-banco").value = c.banco || "Yape";
+        document.getElementById("f-tipo").value = c.tipo || "PERFIL";
+        document.getElementById("f-correo").value = c.correo || "";
+        document.getElementById("f-password").value = c.password || "";
+        document.getElementById("f-pin").value = c.pin || "";
+        document.getElementById("f-proveedor").value = c.proveedor || "";
+        document.getElementById("f-monto").value = c.monto || 0;
+        document.getElementById("f-precio").value = c.precio || 15;
+        document.getElementById("f-fecha").value = c.fecha;
+      } else {
+        document.getElementById("modal-title").textContent = "Agregar Nuevo Cliente";
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        document.getElementById("f-fecha").value = d.toISOString().split("T")[0];
+      }
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeClientModal() {
+      const modal = document.getElementById("client-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    async function saveClientForm(e) {
+      e.preventDefault();
+      const idVal = document.getElementById("f-id").value;
+      const pinVal = document.getElementById("f-pin").value.replace(/[^0-9]/g, "").slice(0, 6);
+
+      const obj = {
+        id: idVal ? Number(idVal) : Date.now(),
+        nombre: document.getElementById("f-nombre").value.trim(),
+        contacto: document.getElementById("f-contacto").value.trim(),
+        venta: document.getElementById("f-venta").value,
+        plataforma: document.getElementById("f-plataforma").value,
+        banco: document.getElementById("f-banco").value,
+        tipo: document.getElementById("f-tipo").value,
+        correo: document.getElementById("f-correo").value.trim(),
+        password: document.getElementById("f-password").value.trim(),
+        pin: pinVal,
+        proveedor: document.getElementById("f-proveedor").value.trim() || "-",
+        monto: Number(document.getElementById("f-monto").value) || 0,
+        precio: Number(document.getElementById("f-precio").value) || 0,
+        fecha: document.getElementById("f-fecha").value
+      };
+
+      if (idVal) {
+        const idx = clients.findIndex(c => c.id === Number(idVal));
+        if (idx !== -1) clients[idx] = obj;
+        showToast("Cliente actualizado", "success");
+      } else {
+        clients.unshift(obj);
+        showToast("Cliente agregado y guardado", "success");
+      }
+
+      closeClientModal();
+      await persistClients();
+    }
+
+    async function deleteClient(id) {
+      if (!confirm("¿Eliminar este cliente?")) return;
+      clients = clients.filter(c => c.id !== id);
+      await persistClients();
+      showToast("Cliente eliminado", "info");
+    }
+
+    async function deleteSelected() {
+      const ids = Array.from(document.querySelectorAll(".row-check:checked")).map(cb => Number(cb.dataset.id));
+      if (!ids.length) {
+        showToast("Selecciona al menos un cliente", "error");
+        return;
+      }
+      if (!confirm(`¿Eliminar ${ids.length} cliente(s)?`)) return;
+      clients = clients.filter(c => !ids.includes(c.id));
+      document.getElementById("select-all").checked = false;
+      await persistClients();
+      showToast("Clientes seleccionados eliminados", "info");
+    }
+
+    function toggleSelectAll(master) {
+      document.querySelectorAll(".row-check").forEach(cb => cb.checked = master.checked);
+    }
+
+    function togglePassword(id) {
+      revealedPasswords[id] = !revealedPasswords[id];
+      renderTable();
+    }
+
+    function setQuickFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll(".filter-pill").forEach(btn => {
+        if (btn.dataset.filter === filter) {
+          btn.className = "filter-pill px-3.5 py-1.5 rounded-full bg-indigo-950 text-white shadow-sm transition";
+        } else {
+          btn.className = "filter-pill px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
         }
+      });
+      renderTable();
+    }
 
-        // ================= NAVIGATION & SIDEBAR =================
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const isClosed = sidebar.classList.contains('-translate-x-full');
-
-            if (isClosed) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
+    function switchView(view) {
+      ["clientes", "dashboard", "mensajes", "config"].forEach(v => {
+        document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
+        const navBtn = document.getElementById("nav-" + v);
+        if (navBtn) {
+          navBtn.className = v === view
+            ? "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-indigo-50 text-indigo-600 font-semibold transition"
+            : "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition";
         }
+      });
+      const titles = { clientes: "Clientes", dashboard: "Dashboard", mensajes: "Mensajes IA", config: "Nube Firebase" };
+      document.getElementById("page-title").textContent = titles[view] || "Clientes";
+      document.getElementById("status-pills").classList.toggle("hidden", view !== "clientes");
+    }
 
-        function switchView(viewName) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById(`view-${viewName}`);
-            if (target) target.classList.remove('hidden');
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("hidden");
+    }
 
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('nav-pill-active');
-                btn.classList.add('text-slate-600');
-            });
-            const activeNav = document.getElementById(`nav-${viewName}`);
-            if (activeNav) {
-                activeNav.classList.add('nav-pill-active');
-                activeNav.classList.remove('text-slate-600');
-            }
+    function updateDashboardStats() {
+      document.getElementById("stat-total").textContent = clients.length;
+      document.getElementById("stat-active").textContent = clients.filter(c => getDaysDiff(c.fecha) >= 0).length;
+      document.getElementById("stat-expired").textContent = clients.filter(c => getDaysDiff(c.fecha) < 0).length;
+      const rev = clients.reduce((acc, c) => acc + (Number(c.precio) || 0), 0);
+      document.getElementById("stat-revenue").textContent = `S/ ${rev.toFixed(2)}`;
+    }
 
-            const titles = {
-                'clientes': 'Clientes',
-                'dashboard': 'Dashboard',
-                'mensajes-ia': 'Mensajes IA',
-                'mensaje-masivo': 'Mensaje Masivo',
-                'config': 'Configuración',
-                'noticias': 'Noticias',
-                'perfil': 'Mi Perfil'
-            };
-            document.getElementById('page-header-title').textContent = titles[viewName] || 'Clientes';
+    function exportCSV() {
+      const headers = ["NOMBRE", "VENTA", "CONTACTO", "PLATAFORMA", "BANCO", "CORREO", "CONTRASEÑA", "PIN_PERFIL", "PROVEEDOR", "MONTO", "TIPO", "PRECIO", "FECHA"];
+      const rows = clients.map(c => [c.nombre, c.venta, c.contacto, c.plataforma, c.banco, c.correo, c.password, c.pin || "", c.proveedor, c.monto, c.tipo, c.precio, c.fecha]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }), "liam_stream_clientes.csv");
+    }
 
-            const headerPills = document.getElementById('header-filter-pills');
-            if (viewName === 'clientes') {
-                headerPills.classList.remove('hidden');
-            } else {
-                headerPills.classList.add('hidden');
-            }
+    function exportJSON() {
+      downloadBlob(new Blob([JSON.stringify(clients, null, 2)], { type: "application/json" }), "liam_stream_respaldo.json");
+    }
 
-            if (viewName === 'dashboard') updateDashboardStats();
+    function downloadBlob(blob, filename) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
 
-            if (window.innerWidth < 1024) {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-            }
+    async function importFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      try {
+        if (file.name.endsWith(".json")) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            clients = parsed;
+            await persistClients();
+            showToast("Respaldo JSON importado y subido a la nube", "success");
+          }
+        } else {
+          showToast("Usa el archivo .json de Respaldo para importar", "info");
         }
-
-        // ================= FILTERS & SEARCH =================
-        function setStatusFilter(status) {
-            currentStatusFilter = status;
-            currentPage = 1;
-
-            document.querySelectorAll('.filter-pill').forEach(pill => {
-                if (pill.dataset.filter === status) {
-                    pill.classList.add('filter-pill-active');
-                    pill.classList.remove('bg-white', 'text-slate-600');
-                } else {
-                    pill.classList.remove('filter-pill-active');
-                    pill.classList.add('bg-white', 'text-slate-600');
-                }
-            });
-
-            const dropdown = document.getElementById('expiry-dropdown-filter');
-            if (['todo', 'vencidos', 'vence-hoy', 'proximos-3', 'activos'].includes(status)) {
-                dropdown.value = status;
-            } else {
-                dropdown.value = 'todo';
-            }
-
-            handleFilters();
-        }
-
-        function handleDropdownExpiryFilter() {
-            const val = document.getElementById('expiry-dropdown-filter').value;
-            setStatusFilter(val);
-        }
-
-        function handleFilters() {
-            const query = document.getElementById('search-input').value.trim().toLowerCase();
-            const platformVal = document.getElementById('platform-filter').value.toLowerCase();
-
-            filteredClients = clients.filter(c => {
-                const matchesSearch = !query ||
-                    (c.nombre && c.nombre.toLowerCase().includes(query)) ||
-                    (c.contacto && c.contacto.toLowerCase().includes(query)) ||
-                    (c.plataforma && c.plataforma.toLowerCase().includes(query)) ||
-                    (c.correo && c.correo.toLowerCase().includes(query)) ||
-                    (c.pinPerfil && c.pinPerfil.toLowerCase().includes(query)) ||
-                    (c.proveedor && c.proveedor.toLowerCase().includes(query));
-
-                const matchesPlatform = platformVal === 'all' ||
-                    (c.plataforma && c.plataforma.toLowerCase() === platformVal);
-
-                let matchesStatus = true;
-                if (currentStatusFilter === 'proveedor') {
-                    matchesStatus = c.proveedor && c.proveedor !== '—' && c.proveedor.trim() !== '';
-                } else if (currentStatusFilter === 'vence-hoy') {
-                    matchesStatus = Number(c.vence) === 0;
-                } else if (currentStatusFilter === 'proximos-3') {
-                    matchesStatus = Number(c.vence) >= 1 && Number(c.vence) <= 3;
-                } else if (currentStatusFilter === 'vencidos') {
-                    matchesStatus = Number(c.vence) < 0;
-                } else if (currentStatusFilter === 'activos') {
-                    matchesStatus = Number(c.vence) > 0;
-                }
-
-                return matchesSearch && matchesPlatform && matchesStatus;
-            });
-
-            const totalPages = Math.max(1, Math.ceil(filteredClients.length / itemsPerPage));
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            renderTable();
-            updateCountsHeader();
-        }
-
-        function updateCountsHeader() {
-            document.getElementById('clients-counter-title').textContent =
-                `Clientes vendidos (${filteredClients.length}/${clients.length})`;
-
-            const urgentCount = clients.filter(c => Number(c.vence) <= 3).length;
-            document.getElementById('badge-ia-count').textContent = urgentCount;
-        }
-
-        // ================= TABLE RENDERING =================
-        function renderTable() {
-            const tbody = document.getElementById('clients-table-body');
-            tbody.innerHTML = '';
-
-            if (filteredClients.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="17" class="py-12 text-center text-slate-400">
-                            <div class="flex flex-col items-center gap-2">
-                                <i data-lucide="inbox" class="w-8 h-8 text-slate-300"></i>
-                                <p class="text-xs font-medium">No se encontraron clientes con los filtros actuales.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                document.getElementById('pagination-info').textContent = 'Mostrando 0 de 0';
-                document.getElementById('pagination-controls').innerHTML = '';
-                lucide.createIcons();
-                return;
-            }
-
-            const startIdx = (currentPage - 1) * itemsPerPage;
-            const endIdx = Math.min(startIdx + itemsPerPage, filteredClients.length);
-            const pageItems = filteredClients.slice(startIdx, endIdx);
-
-            pageItems.forEach(c => {
-                const isSelected = selectedIds.has(c.id);
-                const isPassRevealed = revealedPasswords.has(c.id);
-
-                const ventaHtml = (c.ventaEn && c.ventaEn !== '—')
-                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFCCB] text-[#4D7C0F] border border-[#D9F99D]">${escapeHtml(c.ventaEn)}</span>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const notifiedIndicator = c.notifiedToday
-                    ? `<span title="Notificado por WhatsApp" class="ml-1 inline-flex items-center px-1.5 py-0.2 rounded-full bg-sky-100 text-sky-700 text-[9.5px] font-bold"><i data-lucide="check-check" class="w-2.5 h-2.5"></i></span>`
-                    : '';
-
-                const contactoHtml = (c.contacto && c.contacto !== '—')
-                    ? `<button onclick="sendWhatsAppReminder(${c.id})" title="Abrir chat en WhatsApp de ${escapeHtml(c.nombre)}" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#DCFCE7] text-[#15803D] hover:bg-[#BBF7D0] transition-colors cursor-pointer">
-                        <i data-lucide="phone-call" class="w-3 h-3"></i>
-                        <span>${escapeHtml(c.contacto)}</span>
-                        ${notifiedIndicator}
-                       </button>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const plataformaHtml = (c.plataforma && c.plataforma !== '—')
-                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F5F9] text-slate-700 border border-slate-200/80">${escapeHtml(c.plataforma)}</span>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const bancoHtml = (c.banco && c.banco !== '—')
-                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8FAFC] text-slate-600 border border-slate-200/80">${escapeHtml(c.banco)}</span>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const correoHtml = `
-                    <div class="inline-flex items-center gap-1.5 max-w-[165px]">
-                        <span class="truncate text-slate-600 text-[11px]" title="${escapeHtml(c.correo)}">${escapeHtml(c.correo)}</span>
-                        <button onclick="copyText('${escapeJs(c.correo)}', 'Correo copiado')" class="text-slate-400 hover:text-[#6333F6] shrink-0 cursor-pointer" title="Copiar correo">
-                            <i data-lucide="copy" class="w-3 h-3"></i>
-                        </button>
-                    </div>
-                `;
-
-                const maskedPass = '••••••••';
-                const displayPass = isPassRevealed ? escapeHtml(c.password === '••••••••' ? 'Stream2026*' : c.password) : maskedPass;
-                const passwordHtml = `
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F3E8FF] text-[#6B21A8] text-[11px] font-medium">
-                        <span class="tracking-wider">${displayPass}</span>
-                        <button onclick="togglePasswordVisibility(${c.id})" class="hover:text-violet-950 cursor-pointer" title="Mostrar/Ocultar contraseña">
-                            <i data-lucide="${isPassRevealed ? 'eye-off' : 'eye'}" class="w-3 h-3"></i>
-                        </button>
-                        <button onclick="copyText('${escapeJs(c.password === '••••••••' ? 'Stream2026*' : c.password)}', 'Contraseña copiada')" class="hover:text-violet-950 cursor-pointer" title="Copiar contraseña">
-                            <i data-lucide="copy" class="w-3 h-3"></i>
-                        </button>
-                    </div>
-                `;
-
-                const hasPin = c.pinPerfil && c.pinPerfil !== '—' && c.pinPerfil.trim() !== '';
-                const pinPerfilHtml = hasPin
-                    ? `<div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4338CA] border border-[#C7D2FE] text-[11px] font-mono font-bold tracking-wider">
-                        <span>${escapeHtml(c.pinPerfil)}</span>
-                        <button onclick="copyText('${escapeJs(c.pinPerfil)}', 'PIN del perfil copiado')" class="text-indigo-400 hover:text-indigo-700 cursor-pointer" title="Copiar PIN">
-                            <i data-lucide="copy" class="w-2.5 h-2.5"></i>
-                        </button>
-                       </div>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const proveedorHtml = (c.proveedor && c.proveedor !== '—')
-                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8FAFC] text-slate-600 border border-slate-200/80">${escapeHtml(c.proveedor)}</span>`
-                    : `<span class="text-slate-400">—</span>`;
-
-                const perfilCuentaHtml = c.perfilCuenta === 'CUENTA'
-                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#DBEAFE] text-[#1D4ED8]">CUENTA</span>`
-                    : `<span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#F3E8FF] text-[#7E22CE]">PERFIL</span>`;
-
-                const venceNum = Number(c.vence);
-                let venceBadge = '';
-                if (venceNum < 0) {
-                    venceBadge = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFE4E6] text-[#E11D48] whitespace-nowrap">${venceNum} días</span>`;
-                } else if (venceNum <= 7) {
-                    const label = venceNum === 0 ? 'Hoy' : `${venceNum} días`;
-                    venceBadge = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#D97706] whitespace-nowrap">${label}</span>`;
-                } else {
-                    venceBadge = `<span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#15803D] whitespace-nowrap">${venceNum} días</span>`;
-                }
-
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-slate-50/90 transition-colors ${isSelected ? 'bg-violet-50/40' : ''}`;
-                tr.innerHTML = `
-                    <td class="py-2.5 px-3 text-center">
-                        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelect(${c.id})" class="rounded border-slate-300 text-[#6333F6] focus:ring-[#6333F6] cursor-pointer">
-                    </td>
-                    <td class="py-2.5 px-2.5 text-center font-medium text-slate-800 whitespace-nowrap">${escapeHtml(c.nombre)}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${ventaHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${contactoHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${plataformaHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${bancoHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${correoHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${passwordHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${pinPerfilHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${proveedorHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center text-slate-500 text-[11px] whitespace-nowrap">${escapeHtml(c.contactoProv || '—')}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#15803D]">S/ ${c.monto}</span>
-                    </td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${perfilCuentaHtml}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#15803D]">S/ ${c.precio}</span>
-                    </td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${venceBadge}</td>
-                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] text-slate-600 bg-[#F8FAFC] border border-slate-200/80">${escapeHtml(c.fecha)}</span>
-                    </td>
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                        <div class="inline-flex items-center gap-1.5">
-                            <button onclick="openRenewModal(${c.id})" title="Renovar suscripción" class="w-7 h-7 rounded-lg bg-[#10B981] hover:bg-[#059669] text-white inline-flex items-center justify-center shadow-xs transition-colors cursor-pointer">
-                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-                            </button>
-                            <button onclick="openChargeModal(${c.id})" title="Cobrar al cliente" class="w-7 h-7 rounded-lg bg-[#F59E0B] hover:bg-[#D97706] text-white inline-flex items-center justify-center shadow-xs transition-colors cursor-pointer">
-                                <i data-lucide="banknote" class="w-3.5 h-3.5"></i>
-                            </button>
-                            <button onclick="openClientModal(${c.id})" title="Editar cliente" class="w-7 h-7 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white inline-flex items-center justify-center shadow-xs transition-colors cursor-pointer">
-                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                            </button>
-                            <button onclick="deleteClient(${c.id})" title="Eliminar cliente" class="w-7 h-7 rounded-lg bg-[#EF4444] hover:bg-[#DC2626] text-white inline-flex items-center justify-center shadow-xs transition-colors cursor-pointer">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            renderPagination(startIdx + 1, endIdx, filteredClients.length);
-            updateBulkSelectionBar();
-            lucide.createIcons();
-        }
-
-        function renderPagination(from, to, total) {
-            document.getElementById('pagination-info').textContent = `Mostrando ${from}–${to} de ${total}`;
-            const totalPages = Math.ceil(total / itemsPerPage);
-            const container = document.getElementById('pagination-controls');
-            container.innerHTML = '';
-
-            if (totalPages <= 1) return;
-
-            for (let p = 1; p <= totalPages; p++) {
-                const btn = document.createElement('button');
-                btn.textContent = p;
-                btn.onclick = () => { currentPage = p; renderTable(); };
-                btn.className = p === currentPage
-                    ? 'w-7 h-7 rounded-lg bg-[#6333F6] text-white text-xs font-bold shadow-xs cursor-pointer'
-                    : 'w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium cursor-pointer';
-                container.appendChild(btn);
-            }
-
-            if (currentPage < totalPages) {
-                const nextBtn = document.createElement('button');
-                nextBtn.innerHTML = '&rsaquo;';
-                nextBtn.onclick = () => { currentPage++; renderTable(); };
-                nextBtn.className = 'w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer';
-                container.appendChild(nextBtn);
-
-                const lastBtn = document.createElement('button');
-                lastBtn.innerHTML = '&raquo;';
-                lastBtn.onclick = () => { currentPage = totalPages; renderTable(); };
-                lastBtn.className = 'w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer';
-                container.appendChild(lastBtn);
-            }
-        }
-
-        // ================= ROW ACTIONS =================
-        function togglePasswordVisibility(id) {
-            if (revealedPasswords.has(id)) {
-                revealedPasswords.delete(id);
-            } else {
-                revealedPasswords.add(id);
-            }
-            renderTable();
-        }
-
-        function deleteClient(id) {
-            const client = clients.find(c => c.id === id);
-            if (!client) return;
-            clients = clients.filter(c => c.id !== id);
-            selectedIds.delete(id);
-            saveClientsToStorage();
-            handleFilters();
-            showToast(`Cliente "${client.nombre}" eliminado`, 'info');
-        }
-
-        function confirmDeleteAll() {
-            if (clients.length === 0) {
-                showToast('La lista ya está vacía', 'info');
-                return;
-            }
-            clients = [];
-            selectedIds.clear();
-            saveClientsToStorage();
-            handleFilters();
-            showToast('Todos los registros han sido eliminados', 'info');
-        }
-
-        function toggleSelectAll(checkbox) {
-            const startIdx = (currentPage - 1) * itemsPerPage;
-            const pageItems = filteredClients.slice(startIdx, startIdx + itemsPerPage);
-            if (checkbox.checked) {
-                pageItems.forEach(c => selectedIds.add(c.id));
-            } else {
-                pageItems.forEach(c => selectedIds.delete(c.id));
-            }
-            renderTable();
-        }
-
-        function toggleRowSelect(id) {
-            if (selectedIds.has(id)) {
-                selectedIds.delete(id);
-            } else {
-                selectedIds.add(id);
-            }
-            updateBulkSelectionBar();
-        }
-
-        function updateBulkSelectionBar() {
-            const bar = document.getElementById('bulk-selection-bar');
-            const label = document.getElementById('selected-count-label');
-            if (selectedIds.size > 0) {
-                bar.classList.remove('hidden');
-                bar.classList.add('flex');
-                label.textContent = `${selectedIds.size} seleccionado(s)`;
-            } else {
-                bar.classList.add('hidden');
-                bar.classList.remove('flex');
-            }
-        }
-
-        function deleteSelectedClients() {
-            const count = selectedIds.size;
-            clients = clients.filter(c => !selectedIds.has(c.id));
-            selectedIds.clear();
-            saveClientsToStorage();
-            handleFilters();
-            showToast(`${count} cliente(s) eliminados`, 'info');
-        }
-
-        // ================= MODAL: RENOVAR SUSCRIPCIÓN + WHATSAPP =================
-        function parseDMYDate(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return new Date(BASE_TODAY_DATE);
-            const parts = dateStr.trim().split('/');
-            if (parts.length !== 3) return new Date(BASE_TODAY_DATE);
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const year = parseInt(parts[2], 10);
-            const parsed = new Date(year, month, day);
-            return isNaN(parsed.getTime()) ? new Date(BASE_TODAY_DATE) : parsed;
-        }
-
-        function formatSpanishLongDate(dateObj) {
-            const d = dateObj.getDate();
-            const m = SPANISH_MONTHS[dateObj.getMonth()];
-            const y = dateObj.getFullYear();
-            return `${d} de ${m} de ${y}`;
-        }
-
-        function formatDMYDate(dateObj) {
-            const dd = String(dateObj.getDate()).padStart(2, '0');
-            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const yyyy = dateObj.getFullYear();
-            return `${dd}/${mm}/${yyyy}`;
-        }
-
-        function formatISODate(dateObj) {
-            const dd = String(dateObj.getDate()).padStart(2, '0');
-            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const yyyy = dateObj.getFullYear();
-            return `${yyyy}-${mm}-${dd}`;
-        }
-
-        function openRenewModal(id) {
-            const client = clients.find(c => c.id === id);
-            if (!client) return;
-
-            renewingClientId = id;
-            const currentExpDate = parseDMYDate(client.fecha);
-            const platformName = (client.plataforma && client.plataforma !== '—') ? client.plataforma : 'Streaming';
-
-            document.getElementById('renew-client-avatar').textContent = (client.nombre || 'C').trim().charAt(0).toUpperCase();
-            document.getElementById('renew-client-name').textContent = client.nombre;
-            document.getElementById('renew-client-subtitle').innerHTML =
-                `${escapeHtml(platformName)} · vence el <strong class="text-slate-700 font-semibold">${formatSpanishLongDate(currentExpDate)}</strong>`;
-
-            selectRenewQuickDays(30);
-
-            const modal = document.getElementById('renew-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            lucide.createIcons();
-        }
-
-        function closeRenewModal() {
-            const modal = document.getElementById('renew-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            renewingClientId = null;
-        }
-
-        function selectRenewQuickDays(days) {
-            const client = clients.find(c => c.id === renewingClientId);
-            if (!client) return;
-
-            const currentExp = parseDMYDate(client.fecha);
-            const baseDate = currentExp < BASE_TODAY_DATE ? new Date(BASE_TODAY_DATE) : new Date(currentExp);
-            baseDate.setDate(baseDate.getDate() + days);
-
-            selectedRenewDateObj = baseDate;
-            selectedRenewDaysLabel = days === 180 ? '6 meses (180 días)' : `${days} días`;
-            document.getElementById('renew-specific-date').value = formatISODate(baseDate);
-            document.getElementById('renew-new-date-label').textContent = formatSpanishLongDate(baseDate);
-
-            highlightRenewDayButton(days);
-            updateRenewMessagePreview();
-        }
-
-        function onRenewSpecificDateChange(isoValue) {
-            if (!isoValue) return;
-            const parts = isoValue.split('-');
-            if (parts.length !== 3) return;
-            const chosenDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-            if (isNaN(chosenDate.getTime())) return;
-
-            selectedRenewDateObj = chosenDate;
-            selectedRenewDaysLabel = 'período personalizado';
-            document.getElementById('renew-new-date-label').textContent = formatSpanishLongDate(chosenDate);
-            highlightRenewDayButton(null);
-            updateRenewMessagePreview();
-        }
-
-        function updateRenewMessagePreview() {
-            const client = clients.find(c => c.id === renewingClientId);
-            if (!client || !selectedRenewDateObj) return;
-
-            const platformName = (client.plataforma && client.plataforma !== '—') ? client.plataforma : 'Streaming';
-            const tipo = client.perfilCuenta || 'PERFIL';
-            const formattedNewDate = formatSpanishLongDate(selectedRenewDateObj);
-            const pinLine = (client.pinPerfil && client.pinPerfil !== '—' && client.pinPerfil.trim() !== '')
-                ? `\n🔐 *PIN de perfil:* ${client.pinPerfil}`
-                : '';
-
-            const message =
-                `¡Hola *${client.nombre}*! ✅ Tu suscripción en *LIAM STREAM* ha sido *RENOVADA* con éxito.\n\n` +
-                `📺 *Servicio:* ${platformName} (${tipo})\n` +
-                `⏳ *Tiempo renovado:* +${selectedRenewDaysLabel}\n` +
-                `📅 *Nuevo vencimiento:* ${formattedNewDate}\n` +
-                `📧 *Correo:* ${client.correo}${pinLine}\n\n` +
-                `¡Gracias por seguir disfrutando de *LIAM STREAM — Entretenimiento sin límites*! 🎬✨`;
-
-            document.getElementById('renew-message-text').value = message;
-        }
-
-        function confirmRenewSubscription() {
-            const client = clients.find(c => c.id === renewingClientId);
-            if (!client || !selectedRenewDateObj) return;
-
-            const msPerDay = 1000 * 60 * 60 * 24;
-            const diffDays = Math.round((selectedRenewDateObj.getTime() - BASE_TODAY_DATE.getTime()) / msPerDay);
-            const shouldSendWhatsApp = document.getElementById('renew-send-whatsapp-checkbox').checked;
-            const customRenewalMsg = document.getElementById('renew-message-text').value;
-
-            client.vence = diffDays;
-            client.fecha = formatDMYDate(selectedRenewDateObj);
-
-            const clientName = client.nombre;
-            const formattedNewDate = formatSpanishLongDate(selectedRenewDateObj);
-            closeRenewModal();
-
-            if (shouldSendWhatsApp) {
-                openWhatsAppChatWithClient(client, customRenewalMsg, `Renovación (${selectedRenewDaysLabel})`);
-                showToast(`Suscripción de ${clientName} renovada hasta el ${formattedNewDate} y enviada por WhatsApp`, 'success');
-            } else {
-                client.notifiedToday = false;
-                saveClientsToStorage();
-                handleFilters();
-                showToast(`Suscripción de ${clientName} renovada hasta el ${formattedNewDate}`, 'success');
-            }
-        }
-
-        function highlightRenewDayButton(days) {
-            document.querySelectorAll('.renew-day-btn').forEach(btn => {
-                const btnDays = parseInt(btn.getAttribute('data-days'), 10);
-                if (days !== null && btnDays === days) {
-                    btn.className = 'renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-[#16A34A] bg-[#16A34A] text-white shadow-md shadow-emerald-500/25 transition-all cursor-pointer';
-                } else {
-                    btn.className = 'renew-day-btn py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer';
-                }
-            });
-        }
-
-        // ================= MODAL: COBRAR AL CLIENTE =================
-        function openChargeModal(id) {
-            const client = clients.find(c => c.id === id);
-            if (!client) return;
-
-            chargingClientId = id;
-            const platformName = (client.plataforma && client.plataforma !== '—') ? client.plataforma : 'Streaming';
-            const venceNum = Number(client.vence);
-
-            document.getElementById('charge-client-avatar').textContent = (client.nombre || 'C').trim().charAt(0).toUpperCase();
-            document.getElementById('charge-client-name').textContent = client.nombre;
-            document.getElementById('charge-client-meta').textContent = `${platformName} • ${client.perfilCuenta || 'PERFIL'} • Vence: ${client.fecha}`;
-
-            const statusEl = document.getElementById('charge-client-status');
-            if (venceNum < 0) {
-                statusEl.className = 'px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-rose-100 text-rose-700 shrink-0';
-                statusEl.textContent = `Vencido (${venceNum}d)`;
-            } else if (venceNum === 0) {
-                statusEl.className = 'px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-700 shrink-0';
-                statusEl.textContent = 'Vence hoy';
-            } else {
-                statusEl.className = 'px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-700 shrink-0';
-                statusEl.textContent = `${venceNum} días`;
-            }
-
-            document.getElementById('charge-amount-input').value = client.precio || 15;
-            const methodSelect = document.getElementById('charge-method-select');
-            if (['Yape', 'Plin'].includes(client.banco)) {
-                methodSelect.value = client.banco;
-            } else {
-                methodSelect.value = 'Yape';
-            }
-
-            updateChargeMessagePreview();
-
-            const modal = document.getElementById('charge-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            lucide.createIcons();
-        }
-
-        function closeChargeModal() {
-            const modal = document.getElementById('charge-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            chargingClientId = null;
-        }
-
-        function updateChargeMessagePreview() {
-            const client = clients.find(c => c.id === chargingClientId);
-            if (!client) return;
-
-            const amount = document.getElementById('charge-amount-input').value || client.precio || 15;
-            const method = document.getElementById('charge-method-select').value;
-            const platformName = (client.plataforma && client.plataforma !== '—') ? client.plataforma : 'Streaming';
-            const supportPhone = apiConfig.senderPhone || '+51 999 888 777';
-            const venceNum = Number(client.vence);
-
-            const statusText = venceNum < 0
-                ? `venció hace *${Math.abs(venceNum)} días* (${client.fecha})`
-                : (venceNum === 0 ? `vence *hoy* (${client.fecha})` : `vence el *${client.fecha}*`);
-
-            const message =
-                `Hola *${client.nombre}* 👋, te saluda *LIAM STREAM*.\n` +
-                `Te recordamos el pago de tu suscripción de *${platformName}* (${client.perfilCuenta || 'PERFIL'}), la cual ${statusText}.\n\n` +
-                `💰 *Monto a pagar:* S/ ${amount}\n` +
-                `📲 *Medio de pago:* ${method} (${supportPhone})\n\n` +
-                `Envíanos tu captura de pago por aquí para mantener tu servicio activo sin cortes. ¡Gracias! 🎬✨`;
-
-            document.getElementById('charge-message-text').value = message;
-        }
-
-        function sendChargeWhatsApp() {
-            const client = clients.find(c => c.id === chargingClientId);
-            if (!client) return;
-
-            const customMsg = document.getElementById('charge-message-text').value;
-            const amount = document.getElementById('charge-amount-input').value || client.precio;
-            closeChargeModal();
-            openWhatsAppChatWithClient(client, customMsg, `Cobro S/ ${amount}`);
-        }
-
-        function registerClientPayment() {
-            const client = clients.find(c => c.id === chargingClientId);
-            if (!client) return;
-
-            const amount = Number(document.getElementById('charge-amount-input').value) || Number(client.precio) || 0;
-            const method = document.getElementById('charge-method-select').value;
-
-            client.monto = amount;
-            client.banco = method.includes('BCP') ? 'BCP' : method;
-            saveClientsToStorage();
-            handleFilters();
-            closeChargeModal();
-            showToast(`Pago de S/ ${amount} (${method}) registrado para ${client.nombre}`, 'success');
-        }
-
-        // ================= MODAL: ADD / EDIT CLIENT =================
-        function openClientModal(id = null) {
-            const modal = document.getElementById('client-modal');
-            const title = document.getElementById('modal-title');
-            const form = document.getElementById('client-form');
-            form.reset();
-
-            if (id) {
-                const client = clients.find(c => c.id === id);
-                if (!client) return;
-                title.textContent = `Editar Cliente: ${client.nombre}`;
-                document.getElementById('client-id').value = client.id;
-                document.getElementById('field-nombre').value = client.nombre;
-                document.getElementById('field-ventaEn').value = client.ventaEn || 'WhatsApp';
-                document.getElementById('field-contacto').value = client.contacto || '';
-                document.getElementById('field-plataforma').value = client.plataforma || 'netflix';
-                document.getElementById('field-banco').value = client.banco || 'Yape';
-                document.getElementById('field-perfilCuenta').value = client.perfilCuenta || 'PERFIL';
-                document.getElementById('field-correo').value = client.correo || '';
-                document.getElementById('field-password').value = client.password === '••••••••' ? 'Stream2026*' : client.password;
-                document.getElementById('field-pinPerfil').value = (client.pinPerfil && client.pinPerfil !== '—') ? client.pinPerfil.slice(0, 6) : '';
-                document.getElementById('field-proveedor').value = client.proveedor || '—';
-                document.getElementById('field-contactoProv').value = client.contactoProv || '—';
-                document.getElementById('field-monto').value = client.monto;
-                document.getElementById('field-precio').value = client.precio;
-                document.getElementById('field-vence').value = client.vence;
-                document.getElementById('field-fecha').value = client.fecha;
-            } else {
-                title.textContent = 'Agregar Nuevo Cliente';
-                document.getElementById('client-id').value = '';
-                document.getElementById('field-pinPerfil').value = '';
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeClientModal() {
-            const modal = document.getElementById('client-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function saveClientForm(event) {
-            event.preventDefault();
-            const idVal = document.getElementById('client-id').value;
-            const rawPin = document.getElementById('field-pinPerfil').value.replace(/[^0-9]/g, '').slice(0, 6);
-
-            const clientData = {
-                nombre: document.getElementById('field-nombre').value.trim(),
-                ventaEn: document.getElementById('field-ventaEn').value,
-                contacto: document.getElementById('field-contacto').value.trim(),
-                plataforma: document.getElementById('field-plataforma').value,
-                banco: document.getElementById('field-banco').value,
-                perfilCuenta: document.getElementById('field-perfilCuenta').value,
-                correo: document.getElementById('field-correo').value.trim(),
-                password: document.getElementById('field-password').value.trim() || '••••••••',
-                pinPerfil: rawPin || '—',
-                proveedor: document.getElementById('field-proveedor').value.trim() || '—',
-                contactoProv: document.getElementById('field-contactoProv').value.trim() || '—',
-                monto: Number(document.getElementById('field-monto').value) || 0,
-                precio: Number(document.getElementById('field-precio').value) || 0,
-                vence: Number(document.getElementById('field-vence').value) || 0,
-                fecha: document.getElementById('field-fecha').value.trim() || '16/12/2026'
-            };
-
-            if (idVal) {
-                const idx = clients.findIndex(c => c.id === Number(idVal));
-                if (idx !== -1) {
-                    clients[idx] = { ...clients[idx], ...clientData };
-                    showToast(`Cliente "${clientData.nombre}" actualizado`, 'success');
-                }
-            } else {
-                const newId = clients.length > 0 ? Math.max(...clients.map(c => c.id)) + 1 : 1;
-                clients.unshift({ id: newId, ...clientData });
-                showToast(`Cliente "${clientData.nombre}" agregado exitosamente`, 'success');
-            }
-
-            saveClientsToStorage();
-            closeClientModal();
-            handleFilters();
-        }
-
-        // ================= WHATSAPP DIRECT REDIRECTION =================
-        function buildReminderMessage(client) {
-            const venceNum = Number(client.vence);
-            const platformName = (client.plataforma && client.plataforma !== '—') ? client.plataforma : 'Streaming';
-            if (venceNum < 0) {
-                return `Hola *${client.nombre}* 👋, te saludamos de *LIAM STREAM*. Tu suscripción de *${platformName}* venció hace *${Math.abs(venceNum)} días* (${client.fecha}). ¿Deseas renovarla hoy por S/ ${client.precio} para mantener tu acceso activo?`;
-            } else if (venceNum === 0) {
-                return `¡Hola *${client.nombre}*! ✨ Te recordamos desde *LIAM STREAM* que tu cuenta de *${platformName}* vence *hoy* (${client.fecha}). Escríbenos para renovar tu plan de S/ ${client.precio} sin cortes.`;
-            }
-            return `¡Hola *${client.nombre}*! ✨ Te recordamos desde *LIAM STREAM* que tu cuenta de *${platformName}* vence en *${venceNum} días* (${client.fecha}). Escríbenos para renovar tu plan de S/ ${client.precio}.`;
-        }
-
-        function openWhatsAppChatWithClient(client, customMessage = null, logType = 'Recordatorio') {
-            if (!client || !client.contacto || client.contacto === '—') {
-                showToast('Este cliente no tiene un número válido registrado', 'info');
-                return;
-            }
-
-            const cleanPhone = client.contacto.replace(/\D/g, '');
-            const fullPhone = cleanPhone.startsWith('51') ? cleanPhone : `51${cleanPhone}`;
-            const message = customMessage || buildReminderMessage(client);
-            const waUrl = `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
-
-            window.open(waUrl, '_blank', 'noopener,noreferrer');
-
-            client.notifiedToday = true;
-            saveClientsToStorage();
-            renderTable();
-            appendApiLog(client.nombre, `+${fullPhone}`, logType);
-        }
-
-        function sendWhatsAppReminder(id) {
-            const client = clients.find(c => c.id === id);
-            if (!client) return;
-            openWhatsAppChatWithClient(client, null, 'Recordatorio');
-            showToast(`Abriendo chat de WhatsApp con ${client.nombre}...`, 'success');
-        }
-
-        function openAIReminderModal() {
-            const urgentClients = clients.filter(c => Number(c.vence) <= 3);
-            const listContainer = document.getElementById('ia-urgent-list');
-            listContainer.innerHTML = '';
-
-            if (urgentClients.length === 0) {
-                listContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">¡Excelente! No tienes clientes vencidos ni por vencer en los próximos 3 días.</p>';
-            } else {
-                urgentClients.forEach(c => {
-                    const isExpired = Number(c.vence) < 0;
-                    const badgeClass = isExpired ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700';
-                    const badgeText = isExpired ? `Vencido (${c.vence}d)` : (Number(c.vence) === 0 ? 'Vence hoy' : `En ${c.vence} días`);
-
-                    const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-100';
-                    item.innerHTML = `
-                        <div>
-                            <p class="text-xs font-bold text-slate-800">${escapeHtml(c.nombre)} <span class="font-normal text-slate-400">(${escapeHtml(c.plataforma)})</span></p>
-                            <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold ${badgeClass}">${badgeText}</span>
-                        </div>
-                        <button onclick="sendWhatsAppReminder(${c.id})" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer">
-                            <i data-lucide="send" class="w-3 h-3"></i>
-                            <span>Enviar WhatsApp</span>
-                        </button>
-                    `;
-                    listContainer.appendChild(item);
-                });
-            }
-
-            const modal = document.getElementById('ia-reminder-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            lucide.createIcons();
-        }
-
-        function closeAIReminderModal() {
-            const modal = document.getElementById('ia-reminder-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function triggerFirstSegmentWhatsApp() {
-            const segment = document.getElementById('mass-segment').value;
-            const template = document.getElementById('mass-message-text').value;
-
-            let targets = clients.filter(c => c.contacto && c.contacto !== '—');
-            if (segment === 'vencidos') {
-                targets = targets.filter(c => Number(c.vence) < 0);
-            } else if (segment === 'proximos') {
-                targets = targets.filter(c => Number(c.vence) >= 0 && Number(c.vence) <= 7);
-            }
-
-            if (targets.length === 0) {
-                showToast('No hay clientes en el segmento elegido', 'info');
-                return;
-            }
-
-            const first = targets[0];
-            const personalized = template
-                .replace(/\{nombre\}/gi, first.nombre)
-                .replace(/\{plataforma\}/gi, first.plataforma || 'Streaming')
-                .replace(/\{fecha\}/gi, first.fecha);
-
-            openWhatsAppChatWithClient(first, personalized, 'Masivo');
-            showToast(`Abriendo WhatsApp de ${first.nombre} (1 de ${targets.length} en segmento)`, 'success');
-        }
-
-        function loadApiConfigAndLogs() {
-            try {
-                const savedCfg = localStorage.getItem('liam_stream_cfg_v1');
-                if (savedCfg) {
-                    apiConfig = { ...apiConfig, ...JSON.parse(savedCfg) };
-                    const phoneInput = document.getElementById('cfg-sender-phone');
-                    if (phoneInput) phoneInput.value = apiConfig.senderPhone;
-                }
-            } catch (e) {}
-            renderApiLogs();
-        }
-
-        function saveWhatsAppConfig() {
-            const phoneInput = document.getElementById('cfg-sender-phone');
-            if (phoneInput) {
-                apiConfig.senderPhone = phoneInput.value.trim() || '+51 999 888 777';
-            }
-            try {
-                localStorage.setItem('liam_stream_cfg_v1', JSON.stringify(apiConfig));
-            } catch (e) {}
-            showToast('Configuración de LIAM STREAM guardada correctamente', 'success');
-        }
-
-        function appendApiLog(clientName, phone, typeLabel = 'WhatsApp') {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            apiLogs.unshift({ clientName, phone, timeStr, typeLabel });
-            if (apiLogs.length > 30) apiLogs.pop();
-            renderApiLogs();
-        }
-
-        function renderApiLogs() {
-            const container = document.getElementById('api-logs-container');
-            if (!container) return;
-            if (apiLogs.length === 0) {
-                container.innerHTML = '<p class="text-xs text-slate-400 italic">Aún no se han abierto envíos en esta sesión.</p>';
-                return;
-            }
-            container.innerHTML = apiLogs.map(log => `
-                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span class="font-bold text-slate-700">${escapeHtml(log.clientName)}</span>
-                        <span class="text-slate-400">${escapeHtml(log.phone)}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">${escapeHtml(log.typeLabel)}</span>
-                        <span class="text-[11px] text-slate-400">${log.timeStr}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // ================= EXPORT & IMPORT =================
-        function exportToExcelCSV() {
-            if (clients.length === 0) {
-                showToast('No hay datos para exportar', 'info');
-                return;
-            }
-
-            const headers = ['NOMBRE DE CLIENTE', 'VENTA EN', 'CONTACTO', 'PLATAFORMA', 'BANCO', 'CORREO CUENTA', 'CONTRASEÑA', 'PIN DEL PERFIL', 'PROVEEDOR', 'CONTACTO PROV', 'MONTO', 'PERFIL/CUENTA', 'PRECIO', 'VENCE', 'FECHA'];
-            const rows = clients.map(c => [
-                c.nombre, c.ventaEn, c.contacto, c.plataforma, c.banco, c.correo,
-                c.password, c.pinPerfil || '—', c.proveedor, c.contactoProv, c.monto, c.perfilCuenta, c.precio, c.vence, c.fecha
-            ]);
-
-            const csvContent = '\uFEFF' + [headers, ...rows]
-                .map(row => row.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(','))
-                .join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `LIAM_STREAM_Clientes_${new Date().toISOString().slice(0, 10)}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
-            showToast('Archivo Excel (CSV) descargado correctamente', 'success');
-        }
-
-        function exportGeneralSummary() {
-            const jsonStr = JSON.stringify(clients, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `LIAM_STREAM_Respaldo_General_${new Date().toISOString().slice(0, 10)}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-            showToast('Respaldo General descargado', 'success');
-        }
-
-        function handleImportFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const content = e.target.result;
-                    if (file.name.endsWith('.json')) {
-                        const parsed = JSON.parse(content);
-                        if (Array.isArray(parsed)) {
-                            clients = parsed;
-                            saveClientsToStorage();
-                            handleFilters();
-                            showToast(`Se importaron ${parsed.length} clientes desde JSON`, 'success');
-                        }
-                    } else {
-                        const lines = content.split(/\r?\n/).filter(l => l.trim());
-                        if (lines.length > 1) {
-                            const imported = [];
-                            for (let i = 1; i < lines.length; i++) {
-                                const cols = lines[i].split(',').map(col => col.replace(/^"|"$/g, '').trim());
-                                if (cols[0]) {
-                                    imported.push({
-                                        id: Date.now() + i,
-                                        nombre: cols[0] || 'Cliente',
-                                        ventaEn: cols[1] || 'WhatsApp',
-                                        contacto: cols[2] || '—',
-                                        plataforma: cols[3] || 'netflix',
-                                        banco: cols[4] || 'Yape',
-                                        correo: cols[5] || 'correo@ejemplo.com',
-                                        password: cols[6] || '••••••••',
-                                        pinPerfil: (cols[7] || '').replace(/[^0-9]/g, '').slice(0, 6) || '—',
-                                        proveedor: cols[8] || '—',
-                                        contactoProv: cols[9] || '—',
-                                        monto: Number(cols[10]) || 0,
-                                        perfilCuenta: cols[11] || 'PERFIL',
-                                        precio: Number(cols[12]) || 15,
-                                        vence: Number(cols[13]) || 30,
-                                        fecha: cols[14] || '16/12/2026'
-                                    });
-                                }
-                            }
-                            if (imported.length > 0) {
-                                clients = [...imported, ...clients];
-                                saveClientsToStorage();
-                                handleFilters();
-                                showToast(`Se importaron ${imported.length} clientes desde CSV`, 'success');
-                            }
-                        }
-                    }
-                } catch (err) {
-                    showToast('Error al leer el archivo importado', 'info');
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        // ================= DASHBOARD STATS =================
-        function updateDashboardStats() {
-            const active = clients.filter(c => Number(c.vence) >= 0).length;
-            const expired = clients.filter(c => Number(c.vence) < 0).length;
-            const revenue = clients.reduce((sum, c) => sum + (Number(c.monto) || 0), 0);
-
-            document.getElementById('stat-active-clients').textContent = active;
-            document.getElementById('stat-expired-clients').textContent = expired;
-            document.getElementById('stat-total-revenue').textContent = `S/ ${revenue}`;
-
-            const counts = {};
-            clients.forEach(c => {
-                const p = (c.plataforma && c.plataforma !== '—') ? c.plataforma.toUpperCase() : 'OTROS';
-                counts[p] = (counts[p] || 0) + 1;
-            });
-
-            const container = document.getElementById('platform-breakdown');
-            container.innerHTML = Object.entries(counts).map(([plat, qty]) => `
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-700">${escapeHtml(plat)}</span>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#EDE9FE] text-[#6333F6]">${qty} cuentas</span>
-                </div>
-            `).join('');
-        }
-
-        // ================= UTILITIES & TOASTS =================
-        function copyText(text, message) {
-            const tempInput = document.createElement('textarea');
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showToast(message || 'Copiado al portapapeles', 'success');
-        }
-
-        function toggleThemeNotice() {
-            showToast('Modo claro optimizado activo', 'info');
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgClass = type === 'success'
-                ? 'bg-slate-900 text-white border-emerald-500/40'
-                : 'bg-slate-800 text-white border-violet-500/40';
-            const dotClass = type === 'success' ? 'bg-emerald-400' : 'bg-violet-400';
-
-            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-medium transition-all duration-300 ${bgClass}`;
-            toast.innerHTML = `
-                <span class="w-2 h-2 rounded-full ${dotClass}"></span>
-                <span>${escapeHtml(message)}</span>
-            `;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(8px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function escapeHtml(str) {
-            return String(str ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function escapeJs(str) {
-            return String(str ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        }
-    </script>
+      } catch {
+        showToast("Archivo inválido", "error");
+      }
+      e.target.value = "";
+    }
+
+    function saveTemplates() {
+      localStorage.setItem(TPL_KEY, JSON.stringify({
+        cobro: document.getElementById("tpl-cobro").value,
+        renovacion: document.getElementById("tpl-renovacion").value
+      }));
+      showToast("Plantillas guardadas", "success");
+    }
+
+    function copyText(text, label = "Copiado") {
+      navigator.clipboard.writeText(text || "");
+      showToast(label, "success");
+    }
+
+    function showToast(msg, type = "info") {
+      const container = document.getElementById("toast-container");
+      const el = document.createElement("div");
+      const colors = {
+        success: "bg-emerald-600 text-white",
+        error: "bg-rose-600 text-white",
+        info: "bg-slate-800 text-white"
+      };
+      el.className = `px-4 py-2.5 rounded-xl text-xs font-semibold shadow-lg transition-all ${colors[type] || colors.info}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    function escapeJs(str) {
+      return String(str ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTpls = localStorage.getItem(TPL_KEY);
+      if (savedTpls) {
+        const parsed = JSON.parse(savedTpls);
+        if (parsed.cobro) document.getElementById("tpl-cobro").value = parsed.cobro;
+        if (parsed.renovacion) document.getElementById("tpl-renovacion").value = parsed.renovacion;
+      }
+      loadClients();
+    });
+  </script>
 </body>
 </html>
